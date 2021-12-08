@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="32553b63-1a37-4e23-9ee6-7604145f8ccc" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="20x1IB0NJUgrs3O48jtLW8AuAOc" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="run.code.analysis.last.selected.profile" value="aDefault" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="32553b63-1a37-4e23-9ee6-7604145f8ccc" name="Default Changelist" comment="" />
+      <created>1636971342501</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1636971342501</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="708" y="380" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1" timestamp="1638950409978">
+      <screen x="0" y="23" width="1920" height="989" />
+    </state>
+    <state x="708" y="380" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1/-1440.647.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1638950409978" />
+    <state x="708" y="381" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1/-1440.647.1440.877/0.23.1920.991@0.23.1920.991" timestamp="1638806851817" />
+    <state x="531" y="321" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1/0.23.1440.826@0.23.1440.826" timestamp="1638821316983" />
+    <state x="100" y="123" width="1713" height="789" key="DiffContextDialog" timestamp="1638805797992">
+      <screen x="0" y="23" width="1920" height="989" />
+    </state>
+    <state x="100" y="123" width="1713" height="789" key="DiffContextDialog/-1440.647.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1638805797992" />
+    <state x="800" y="284" key="FileChooserDialogImpl" timestamp="1636971885460">
+      <screen x="0" y="23" width="1920" height="988" />
+    </state>
+    <state x="800" y="284" key="FileChooserDialogImpl/-1440.647.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1636971885460" />
+    <state x="496" y="160" key="SettingsEditor" timestamp="1638205370144">
+      <screen x="0" y="23" width="1920" height="988" />
+    </state>
+    <state x="496" y="160" key="SettingsEditor/-1440.647.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1638205370144" />
+    <state x="776" y="440" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1638251424231">
+      <screen x="0" y="23" width="1920" height="986" />
+    </state>
+    <state x="776" y="440" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/-1440.647.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1638251424231" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/wrappers.py</url>
+          <line>2</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
