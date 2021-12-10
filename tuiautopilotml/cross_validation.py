@@ -8,7 +8,9 @@ from sklearn import model_selection as ms
 import sklearn
 from sklearn.metrics import f1_score, precision_score, recall_score
 
-from tuiautopilotml.datasets import Dataset
+# TEMPORARY LINE - REMOVE THIS AND UNCOMMENT THE OTHER LINE
+from datasets import Dataset
+#from tuiautopilotml.datasets import Dataset
 
 
 class EvalMetrics(enum.Enum):

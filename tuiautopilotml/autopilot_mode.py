@@ -1,4 +1,5 @@
-from tuiautopilotml.helper_functions import get_params_from_config, update_config, update_upload_config
+#from tuiautopilotml.helper_functions import get_params_from_config, update_config, update_upload_config
+from helper_functions import get_params_from_config, update_config, update_upload_config # TEMP- REMOVE THIS LINE
 
 
 def autopilot_mode(steps: list, config_dict: dict):

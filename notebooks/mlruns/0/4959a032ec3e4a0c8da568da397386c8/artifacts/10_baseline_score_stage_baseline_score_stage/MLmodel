@@ -1,0 +1,13 @@
+artifact_path: 10_baseline_score_stage_baseline_score_stage
+flavors:
+  python_function:
+    env: conda.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    python_version: 3.7.9
+  sklearn:
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 0.24.2
+run_id: 4959a032ec3e4a0c8da568da397386c8
+utc_time_created: '2021-12-10 13:19:32.457145'

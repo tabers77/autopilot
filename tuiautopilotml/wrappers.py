@@ -1,12 +1,13 @@
 # INIT PACKAGES
+from helper_functions import * # LOCAL CHANGE TEMP(REMOVE THIS LINE AND ACTIVATE NEXT LINE)
+#from tuiautopilotml.helper_functions import *
 
-from tuiautopilotml.helper_functions import *
 import re
 from scipy.stats import ttest_ind
 
 # DATABASES
-from google.cloud import bigquery
-import snowflake.connector
+#from google.cloud import bigquery UNCOMMENT THIS
+#import snowflake.connector
 
 # SKLEARN CLASSIFIERS
 from sklearn.ensemble import StackingClassifier
@@ -467,7 +468,7 @@ class TrainVsTest:
 
 """******** HANDLE MISSING VALUES ********"""
 
-
+#****UPDATED FUNCTION****
 def eval_imputation_method_wrapper(dataframe, target_label, test_size=0.2, model=RandomForestClassifier(),
                                    classification=True, evaluation_metric='accuracy'):
     """
@@ -515,24 +516,31 @@ def eval_imputation_method_wrapper(dataframe, target_label, test_size=0.2, model
                                                          test_size=test_size, use_custom_method=True,
                                                          custom_method=drop_nulls)
 
-        scores[f'drop_score-'] = (drop_score, drop_score_std)
+        scores[f'get_encoded_wrapper-'] = (drop_score, drop_score_std)
 
         # Method 3
-        # encoded_nulls_scores, encoded_nulls_std = get_custom_cv_score(
-        #     dataframe=get_encoded_wrapper(dataframe, encode_nulls=True),
-        #     target_label=target_label,
-        #     classification=classification,
-        #     evaluation_metric=evaluation_metric, model=model,
-        #     test_size=test_size)
+        encoded_nulls_scores, encoded_nulls_std = get_custom_cv_score(
+            dataframe=get_encoded_wrapper(dataframe, encode_nulls=True),
+            target_label=target_label,
+            classification=classification,
+            evaluation_metric=evaluation_metric, model=model,
+            test_size=test_size)
 
-        # scores['encoded_nulls_score-'] = (encoded_nulls_scores, encoded_nulls_std)
+        scores['encoded_nulls_score-'] = (encoded_nulls_scores, encoded_nulls_std)
 
         print(f'Results: {scores}')
+        print('***********Generating final output***********')
+        funcs_dict = {'get_imputed_x': get_imputed_x, 'drop_nulls': drop_nulls,
+                      'get_encoded_wrapper': get_encoded_wrapper}
+        init_funcs_dict = {'dataframe': dataframe, 'target_label': target_label, 'test_size': test_size, 'model': model,
+                           'classification': classification, 'evaluation_metric': evaluation_metric,
+                           'encode_nulls': True, 'return_mapping': False}
 
-        funcs_dict = {'get_imputed_x': get_imputed_x, 'drop_nulls': drop_nulls}
         func, params = get_func_params(scores, input_params=['func', 'strategy'], classification=classification)
-        output_df = get_output_df(funcs_dict=funcs_dict, func=func, dataframe=dataframe, **params)
 
+        output_df = get_output_df_wrapper(functions_dict=init_funcs_dict, sub_functions_dict=funcs_dict,
+                                          function_name=func,
+                                          params=params)
         return output_df
 
 

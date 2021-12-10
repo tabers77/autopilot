@@ -1,0 +1,1 @@
+('id', 'reservation_id', 'package_type', 'departure_code', 'arrival_code', 'arrival_country', 'carrier_id', 'no_of_adults', 'gender_id', 'country_id', 'bought_product', 'encoded_nulls_no_of_kids', 'return_date_day', 'return_date_month', 'return_date_year', 'return_date_weekday', 'birthdate_day', 'birthdate_month', 'birthdate_year', 'birthdate_weekday')

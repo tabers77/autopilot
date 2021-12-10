@@ -17,7 +17,7 @@ import optuna
 import pandas as pd
 import seaborn as sns
 # EDA PACKAGES
-import sweetviz as sv
+#import sweetviz as sv UNCOMMENT THIS LINE
 # SKLEARN HYPEROPT
 from hyperopt import fmin, tpe, STATUS_OK, Trials
 # OVERSAMPLING
@@ -39,10 +39,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 # SCALERS
 from sklearn.preprocessing import StandardScaler
-from tuiautopilotml import cross_validation as cv
-from tuiautopilotml import datasets as d
-from tuiautopilotml.dicts import scorers, replace_methods, models, hyper_params, scalers, transformers
-from tuiautopilotml.mlflow_uploader import MLFlow
+
+#REMOVE FOLLOWING LINES AND UNCOMMENT OTHERS
+import cross_validation as cv
+import datasets as d
+from dicts import scorers, replace_methods, models, hyper_params, scalers, transformers
+from mlflow_uploader import MLFlow
+# from tuiautopilotml import cross_validation as cv
+# from tuiautopilotml import datasets as d
+# from tuiautopilotml.dicts import scorers, replace_methods, models, hyper_params, scalers, transformers
+# from tuiautopilotml.mlflow_uploader import MLFlow
 
 current_color = 'firebrick'
 current_palette = 'mako'
@@ -550,7 +556,8 @@ def get_custom_cv_score(dataframe: pd.DataFrame, target_label: str, classificati
         test_index.append(dataframe[folds_lst[i]:folds_lst[i + 1]].index.values)
         test = dataframe.iloc[test_index[i]]
         train_idx = list(set(test_index[i]) ^ set(dataframe.index.values))
-        train = dataframe.iloc[train_idx]
+        #train = dataframe.iloc[train_idx]
+        train = dataframe.loc[train_idx]# TESTING THIS LINE
         current_train = train if not use_custom_method else custom_method(train, *args, **kwargs)
         x_train, y_train = get_x_y_from_df(current_train, target_label)
 
@@ -1360,15 +1367,21 @@ def get_scaled_x_score(dataframe, target_label, model_name='RF',
 
 """******** AUTOPILOT MODE FUNCTIONS ******** """
 
-
+#****UPDATED FUNCTION****
 def get_output_df_wrapper(functions_dict, sub_functions_dict, function_name, params):
+
     """Wrapper function"""
 
     full_args_lst = getfullargspec(sub_functions_dict[function_name])[0]
-    full_args_lst = {i: functions_dict[i] for i in full_args_lst if i not in params.keys()}
-    mix_dict = {**params, **full_args_lst}
+    full_args_lst2 = {i: functions_dict[i] for i in full_args_lst if i not in params.keys()}
 
-    output_df = sub_functions_dict[function_name](**mix_dict)
+    for i in params.keys():
+        if i in full_args_lst:
+            final_dict = {**params, **full_args_lst2}
+        else:
+            final_dict = full_args_lst2
+
+    output_df = sub_functions_dict[function_name](**final_dict)
 
     return output_df
 
