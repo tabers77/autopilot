@@ -3,19 +3,26 @@ from helper_functions import get_params_from_config, update_config, update_uploa
 
 
 def autopilot_mode(steps: list, config_dict: dict):
+    """Autopilot function
 
-    """Autopilot function"""
+    Recommended steps:
+
+    dataframe_transformation >> eval_imputation_method_wrapper >> get_encoded_wrapper >> get_baseline_score
+    >> handle_outliers >> evaluate_oversamplers >> evaluate_models_wrapper >> hyper_opt_manual
+
+
+    """
 
     # Define initial checkpoints
     # these 3 will generate data frames
     initial_check_points = ['dataframe_transformation', 'encoding', 'handle_missing_values']
     support_functions = ['baseline_score']
-    eval_models_steps = ['evaluate_models']  # this includes functions that returns scores, (scores, std )
-    hyper_p_steps = ['hyper_param_opt']
+    scoring_functions = ['evaluate_models']  # this includes functions that returns scores, (scores, std )
+    hyper_p_steps = ['hyper_param_opt', 'optuna']
 
     # Generate a run id
     run_id_number = config_dict['run_id_number']
-    print(f'Current run id: {run_id_number}')
+    print(f'Current run_id: {run_id_number}')
 
     functions_names = list(steps.keys())
     functions = list(steps.values())
@@ -37,30 +44,27 @@ def autopilot_mode(steps: list, config_dict: dict):
 
             elif functions_names[i] in support_functions:
 
-                # Support functions doest not return anything
+                # support functions doest not return anything
                 functions[i](**current_params)
 
+            elif functions_names[i] in scoring_functions:
+
+                # this functions only takes scores as input
+                scores = functions[i](**current_params)
+                update_upload_config(scores=scores, config_dict=config_dict,
+                                     run_name=f'{run_id_number}_{functions_names[i]}_stage')
+
+            elif functions_names[i] in hyper_p_steps:
+                scores, params = functions[i](**current_params)
+                update_upload_config(scores=scores, config_dict=config_dict, tuned_params=params,
+                                     run_name=f'{run_id_number}_{functions_names[i]}_stage')
+
             else:
-
-                if functions_names[i] in eval_models_steps:
-
-                    # this function only takes scores
-                    scores = functions[i](**current_params)
-                    update_upload_config(scores=scores, config_dict=config_dict,
-                                         run_name=f'{run_id_number}_{functions_names[i]}_stage')
-
-                elif functions_names[i] in hyper_p_steps:
-
-                    scores, params = functions[i](**current_params)
-                    update_upload_config(scores=scores, config_dict=config_dict, tuned_params=params,
-                                         run_name=f'{run_id_number}_{functions_names[i]}_stage')
-
-                elif functions_names[i] not in eval_models_steps:
-                    scores, result_df = functions[i](**current_params)
-
-                    # this function take a result df as input
-                    update_upload_config(scores=scores, config_dict=config_dict, result_df=result_df,
-                                         run_name=f'{run_id_number}_{functions_names[i]}_stage')
+                print(f'Mixed function: {functions_names[i]}')
+                scores, result_df = functions[i](**current_params)
+                # this functions take a result df as input
+                update_upload_config(scores=scores, config_dict=config_dict, result_df=result_df,
+                                     run_name=f'{run_id_number}_{functions_names[i]}_stage')
 
         except TypeError as err:
 

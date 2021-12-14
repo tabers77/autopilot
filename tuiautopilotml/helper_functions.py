@@ -7,6 +7,7 @@ import re
 from datetime import date
 from datetime import datetime as dt
 from inspect import getfullargspec
+import distutils
 # INIT PACKAGES
 from time import time
 
@@ -39,6 +40,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 # SCALERS
 from sklearn.preprocessing import StandardScaler
+
+# SKLEARN FOLD/GRIDSEARCH
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import RepeatedKFold
+from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.model_selection import KFold
 
 #REMOVE FOLLOWING LINES AND UNCOMMENT OTHERS
 import cross_validation as cv
@@ -107,10 +116,14 @@ def now_as_timestamp_string():
 
 def extract_day_month_year_and_weekday(dataframe: pd.DataFrame, date_col: str):
     dataframe = dataframe.copy()
-    dataframe[f'{date_col}_day'] = dataframe[date_col].apply(lambda x: int(x.day))
-    dataframe[f'{date_col}_month'] = dataframe[date_col].apply(lambda x: int(x.month))
-    dataframe[f'{date_col}_year'] = dataframe[date_col].apply(lambda x: int(x.year))
-    dataframe[f'{date_col}_weekday'] = dataframe[date_col].apply(lambda x: int(x.weekday()))
+    # dataframe[f'{date_col}_day'] = dataframe[date_col].apply(lambda x: int(x.day))
+    # dataframe[f'{date_col}_month'] = dataframe[date_col].apply(lambda x: int(x.month))
+    # dataframe[f'{date_col}_year'] = dataframe[date_col].apply(lambda x: int(x.year))
+    # dataframe[f'{date_col}_weekday'] = dataframe[date_col].apply(lambda x: int(x.weekday()))
+    dataframe[f'{date_col}_day'] = dataframe[date_col].apply(lambda x: x.day)
+    dataframe[f'{date_col}_month'] = dataframe[date_col].apply(lambda x: x.month)
+    dataframe[f'{date_col}_year'] = dataframe[date_col].apply(lambda x: x.year)
+    dataframe[f'{date_col}_weekday'] = dataframe[date_col].apply(lambda x: x.weekday())
 
     return dataframe
 
@@ -131,6 +144,10 @@ def select_custom_dict(input_dict: dict, custom_lst: list):
     return output_dict
 
 
+def from_str_to_bool(i):
+    return bool(distutils.util.strtobool(i))
+
+
 """******** FUNCTIONS USED TO GENERATE OUTPUT FOR SOME FUNCTIONS. TO SUPPORT THE AUTOPILOT MODE********"""
 
 
@@ -142,20 +159,26 @@ def get_func_params(scores, input_params, classification):
 
     new_scores, new_std, best_method = get_best_score(scores, classification=classification)
     print(f'Current best method: {best_method}')
-    lst = best_method.split('-')
-    func = lst[0]
+    lst_values = best_method.split('-')
+    func = lst_values[0]  # assuming that function is the first character
     dict_ = {}
     for i in range(len(input_params)):
-        dict_[input_params[i]] = lst[i]
+        if input_params[list(input_params.keys())[i]] is not None:
+            dict_[list(input_params.keys())[i]] = input_params[list(input_params.keys())[i]](lst_values[i])
+        else:
+            pass
+
     params = {k: v for k, v in dict_.items() if k != 'func'}
+    print(f'Params to return:{params}')
 
     return func, params
 
 
-def get_output_df(funcs_dict=None, func=None, *args, **kwargs):
-    output_df = funcs_dict[func](*args, **kwargs)
-
-    return output_df
+# REMOVE THIS FUNCTION IF IT IS NOT IN USE:
+# def get_output_df(funcs_dict=None, func=None, *args, **kwargs):
+#     output_df = funcs_dict[func](*args, **kwargs)
+#
+#     return output_df
 
 
 """******** SECTION: ENCODING ********"""
@@ -877,8 +900,8 @@ def replace_outliers(dataframe: pd.DataFrame, distribution: str, tot_outlier_pct
     return dataframe
 
 
-def drop_outliers(dataframe: pd.DataFrame, distribution: str, tot_outlier_pct: int, strategy):
-    strategy = None
+def drop_outliers(dataframe: pd.DataFrame, distribution: str, tot_outlier_pct: int):
+
     dataframe = dataframe.copy()
 
     outliers_pct, outliers_values = get_outliers(dataframe=dataframe, distribution=distribution, show_graph=False)
@@ -1200,10 +1223,10 @@ def hyper_opt_manual(dataframe: pd.DataFrame, target_label: str, model_name=None
     return results, params
 
 
-@time_performance_decor
-@gc_collect_decor
-@check_encoded_df_decor
-def optuna_wrapper(dataframe: pd.DataFrame, target_label: str, algorithm='XGB', n_minutes_limit=None, n_trials=None,
+# @time_performance_decor
+# @gc_collect_decor
+# @check_encoded_df_decor
+def optuna_wrapper(dataframe: pd.DataFrame, target_label: str, model_name='XGB', n_minutes_limit=None, n_trials=None,
                    params_list=None, classification=True, evaluation_metric='accuracy', test_size=0.2,
                    direction='maximize'):
     """
@@ -1211,7 +1234,7 @@ def optuna_wrapper(dataframe: pd.DataFrame, target_label: str, algorithm='XGB', 
     Args:
         dataframe:
         target_label:
-        algorithm:
+        model_name:
         n_minutes_limit:
         n_trials:
         params_list:
@@ -1228,9 +1251,9 @@ def optuna_wrapper(dataframe: pd.DataFrame, target_label: str, algorithm='XGB', 
     else:
         n_seconds_limit = None
 
-    if algorithm == 'XGB':
+    if model_name == 'XGB':
         models_dict = models['clf'] if classification else models['reg']
-        model = select_custom_dict(models_dict, [algorithm])[algorithm]
+        model = select_custom_dict(models_dict, [model_name])[model_name]
 
         def objective(trial):
 
@@ -1257,9 +1280,6 @@ def optuna_wrapper(dataframe: pd.DataFrame, target_label: str, algorithm='XGB', 
             score = get_hold_out_score(dataframe=dataframe, target_label=target_label, model=model, test_size=test_size,
                                        evaluation_metric=evaluation_metric)
 
-            print('passed score temp')
-            print(f'Score: {score}')
-
             # Pruning
             trial.report(score, 0)
             if trial.should_prune():
@@ -1283,11 +1303,67 @@ def optuna_wrapper(dataframe: pd.DataFrame, target_label: str, algorithm='XGB', 
         # Visualization
         optuna.visualization.plot_optimization_history(study)
         best_score = study.best_value
-        results_list = [best_score, best_params[1], study]
-        return results_list
+        scores = {model_name: (best_score, None)}
+        return scores, best_params[1]
 
     else:
+        print(f'There are still no parameters for algorithm {model_name}')
+        pass
 
+
+
+@time_performance_decor
+@gc_collect_decor
+def grid_search_wrapper(dataframe: pd.DataFrame, target_label: str, param_grid: dict, model=models['clf']['RF'],
+                        evaluation_metric="accuracy", n_jobs=-1, verbose=3, n_folds=3, n_repeats=3,
+                        k_fold_method='stratified_k_fold', grid_search_method='randomized', random_state=seed):
+    """
+
+    Args:
+        evaluation_metric:
+        target_label:
+        dataframe:
+        model:
+        param_grid:
+        n_jobs:
+        verbose:
+        n_folds:
+        n_repeats:
+        k_fold_method:
+        grid_search_method:
+        random_state:
+
+    Returns:
+
+    """
+    x, y = get_x_y_from_df(dataframe, target_label)
+
+    k_fold_methods_dict = {'k_fold': KFold(n_splits=n_folds, shuffle=True),
+                           'repeated_k_fold': RepeatedKFold(n_splits=n_folds, n_repeats=n_repeats,
+                                                            random_state=random_state),
+                           'stratified_k_fold': StratifiedKFold(n_splits=n_folds, shuffle=True,
+                                                                random_state=random_state),
+                           'repeated_stratified_k_fold': RepeatedStratifiedKFold(n_splits=n_folds,
+                                                                                 n_repeats=n_repeats,
+                                                                                 random_state=random_state)}
+
+    current_kfold = k_fold_methods_dict[k_fold_method]
+
+    grid_search_dict = {
+        'randomized': RandomizedSearchCV(model, param_grid, scoring=evaluation_metric, n_jobs=n_jobs, cv=current_kfold,
+                                         verbose=verbose),
+        'gridsearch': GridSearchCV(model, param_grid, scoring=evaluation_metric, n_jobs=n_jobs, cv=current_kfold,
+                                   verbose=verbose)}  # this does not save results during the process
+
+    current_grid_search = grid_search_dict[grid_search_method]
+
+    try:
+        grid_result = current_grid_search.fit(x, y)
+        print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+        return grid_result
+
+    except ValueError as err:
+        print(f'You got following error: {err}')
         pass
 
 
@@ -1327,8 +1403,8 @@ def drop_nulls(dataframe: pd.DataFrame):
 
 
 def scale_x(dataframe, target_label, scaler_name, use_transformers=False, transformer_name=None):
-    x, y = get_x_y_from_df(dataframe, target_label)
 
+    x, y = get_x_y_from_df(dataframe, target_label)
     scaler = scalers[scaler_name]
 
     if use_transformers:
@@ -1336,29 +1412,37 @@ def scale_x(dataframe, target_label, scaler_name, use_transformers=False, transf
         transformer.fit(x)
         transformed_x = transformer.transform(x)
         current_x = scaler.fit_transform(transformed_x)
-
     else:
         current_x = scaler.fit_transform(x)
 
-    output_df_arr = np.c_[current_x, y]
+    columns = list(x.columns)
+    columns.append(target_label)
+    output_df_arr = pd.DataFrame(np.c_[current_x, y], columns=columns)
+    # output_df_arr =np.c_[current_x, y] # Adjust PCA and Truncated dynamically
 
     return output_df_arr
 
 
-def get_scaled_x_score(dataframe, target_label, model_name='RF',
-                       scaler_name='MinMax', use_transformers=False, transformer_name=None, k_fold_method='k_fold',
-                       n_folds=5, n_repeats=3, classification=True, evaluation_metric='accuracy'):
+def get_scaled_x_score(dataframe, target_label, model_name='RF', scaler_name='MinMax', use_transformers=False,
+                       transformer_name=None,
+                       k_fold_method='k_fold', n_folds=5, n_repeats=3, classification=True,
+                       evaluation_metric='accuracy'):
     """Test scaled version of x. This will return the mean and standard deviation"""
-
-    output_df_arr = scale_x(dataframe, target_label, scaler_name, use_transformers=use_transformers,
-                            transformer_name=transformer_name)
-    y = output_df_arr[:, -1]
-    x = output_df_arr[:, :-1]
 
     models_dict = models['clf'] if classification else models['reg']
     model = models_dict[model_name]
 
-    scores = get_cross_val_score_wrapper(x=x, y=y, model=model, k_fold_method=k_fold_method,
+    output_df_arr = scale_x(dataframe, target_label, scaler_name, use_transformers=use_transformers,
+                            transformer_name=transformer_name)
+    # Adjust PCA and Truncated dynamically
+    # y = output_df_arr[:, -1]
+    # x = output_df_arr[:, :-1]
+
+    #     scores = get_cross_val_score_wrapper(x=x, y=y, model=model, k_fold_method=k_fold_method,
+    #                                          n_folds=n_folds, n_repeats=n_repeats, random_state=seed,
+    #                                          classification=classification, evaluation_metric=evaluation_metric)
+    scores = get_cross_val_score_wrapper(dataframe=output_df_arr, target_label=target_label, model=model,
+                                         k_fold_method=k_fold_method,
                                          n_folds=n_folds, n_repeats=n_repeats, random_state=seed,
                                          classification=classification, evaluation_metric=evaluation_metric)
 
@@ -1373,17 +1457,18 @@ def get_output_df_wrapper(functions_dict, sub_functions_dict, function_name, par
     """Wrapper function"""
 
     full_args_lst = getfullargspec(sub_functions_dict[function_name])[0]
-    full_args_lst2 = {i: functions_dict[i] for i in full_args_lst if i not in params.keys()}
+    params_excluded_dict = {i: functions_dict[i] for i in full_args_lst if i not in params.keys()}
+    param_in_full_args_lst = [i for i in params.keys() if i in full_args_lst]
 
-    for i in params.keys():
-        if i in full_args_lst:
-            final_dict = {**params, **full_args_lst2}
-        else:
-            final_dict = full_args_lst2
+    if len(param_in_full_args_lst) != 0:
+        combination_dict = {**params, **params_excluded_dict}
+        print('returning combination dict')
+        return sub_functions_dict[function_name](**combination_dict)
 
-    output_df = sub_functions_dict[function_name](**final_dict)
+    else:
+        print('returning params_excluded_dict')
 
-    return output_df
+        return sub_functions_dict[function_name](**params_excluded_dict)
 
 
 def get_best_score(scores, classification=True):
@@ -1396,18 +1481,20 @@ def get_best_score(scores, classification=True):
 
 
 def get_latest_score(config_dict: dict):
+
     experiment_id = "0"
     runs_df = mlflow.search_runs([experiment_id]).sort_values('end_time', ascending=False)
+    runs_df = runs_df[runs_df.status == 'FINISHED']  # exclude all failed jobs
 
     try:
         id_n = config_dict['run_id_number']
-
         lst = []
         for i in runs_df['tags.mlflow.runName']:
             if re.search(str(id_n), i):
                 lst.append(i)
 
         first_row = runs_df[runs_df['tags.mlflow.runName'].isin(lst)].sort_values('end_time', ascending=False)[:1]
+
         score_mean = first_row[f"metrics.{config_dict['evaluation_metric']}"].reset_index(drop=True)
         score_std = first_row[f"metrics.std"].reset_index(drop=True)
 
@@ -1422,6 +1509,7 @@ def get_latest_score(config_dict: dict):
 
 
 def update_config(key=None, value=None, config_dict: dict = None, **kwargs):
+
     if key is not None and len(kwargs) == 0:
         config_dict[key] = value
     else:
@@ -1432,16 +1520,15 @@ def update_config(key=None, value=None, config_dict: dict = None, **kwargs):
 
 def new_score_is_significant(scores: dict, config_dict: dict, classification=True):
     print('obtaining latest score..')
+
     mean_score, std_score = get_latest_score(config_dict=config_dict)
-
-    print(f'Previous scores: {mean_score, std_score}')
-
     new_score, new_std, best_method = get_best_score(scores, classification=classification)
+    print(f'Previous scores: {mean_score, std_score}')
+    print(f'New scores: {new_score, new_std}')
 
     if classification:
 
-        if new_std is None:
-
+        if new_std is None or std_score is None:  # testing this logic
             if new_score > mean_score:
                 return True
             else:
@@ -1452,7 +1539,7 @@ def new_score_is_significant(scores: dict, config_dict: dict, classification=Tru
             else:
                 return False
     else:
-        if new_std is None:
+        if new_std is None or std_score is None:
             if new_score < mean_score:
                 return True
             else:
@@ -1473,6 +1560,7 @@ def get_params_to_upload(config_dict: dict, params_keys: dict):
 
 
 def update_upload_config(scores: dict, config_dict: dict, result_df=None, tuned_params=None, run_name='run_name'):
+
     params_keys = [config_dict['evaluation_metric'], 'std', 'k_fold_method', 'n_folds', 'n_repeats', 'seed',
                    'n_jobs', 'num_rows', 'model_name', 'best_method']
 
@@ -1499,7 +1587,6 @@ def update_upload_config(scores: dict, config_dict: dict, result_df=None, tuned_
             update_config(model_name=best_method, config_dict=config_dict)  # add num rows
 
         # Upload relevant results to MLFLOW
-
         uploader = MLFlow(config_dict, params_keys)
         uploader.upload_config_file(run_name=run_name)
 
@@ -1511,11 +1598,11 @@ def update_upload_config(scores: dict, config_dict: dict, result_df=None, tuned_
 
 def get_baseline_score(dataframe: pd.DataFrame, target_label: str, classification: bool, evaluation_metric: str,
                        run_id_number: int,
-                       model, k_fold_method='k_fold',
+                       model_name, k_fold_method='k_fold',
                        n_folds=3,
                        n_repeats=10):
     """Get a baseline score """
-
+    model = models['clf'][model_name] if classification else models['reg'][model_name]
     x, y = get_x_y_from_df(dataframe=dataframe, target_label=target_label, scaled_df=False)
 
     scores = get_cross_val_score_wrapper(x=x, y=y, model=model, k_fold_method=k_fold_method, n_folds=n_folds,

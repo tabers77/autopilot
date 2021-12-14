@@ -18,13 +18,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import StackingRegressor
 from sklearn.linear_model import LinearRegression
 
-# SKLEARN FOLD/GRIDSEARCH
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import RepeatedKFold
-from sklearn.model_selection import RepeatedStratifiedKFold
-from sklearn.model_selection import KFold
+
 
 # These libraries are temporarily here until we add functions using them
 # KERAS - TENSORFLOW
@@ -509,14 +503,14 @@ def eval_imputation_method_wrapper(dataframe, target_label, test_size=0.2, model
             scores[f'get_imputed_x-{strategy}'] = (imput_scores, imput_scores_std)
 
         # Method 2
-        print('drop_score...')
+        print('drop_nulls_score...')
         drop_score, drop_score_std = get_custom_cv_score(dataframe=dataframe, target_label=target_label,
                                                          classification=classification,
                                                          evaluation_metric=evaluation_metric, model=model,
                                                          test_size=test_size, use_custom_method=True,
                                                          custom_method=drop_nulls)
 
-        scores[f'get_encoded_wrapper-'] = (drop_score, drop_score_std)
+        scores[f'drop_nulls-{None}'] = (drop_score, drop_score_std)
 
         # Method 3
         encoded_nulls_scores, encoded_nulls_std = get_custom_cv_score(
@@ -526,7 +520,7 @@ def eval_imputation_method_wrapper(dataframe, target_label, test_size=0.2, model
             evaluation_metric=evaluation_metric, model=model,
             test_size=test_size)
 
-        scores['encoded_nulls_score-'] = (encoded_nulls_scores, encoded_nulls_std)
+        scores[f'encoded_nulls_score-{None}'] = (encoded_nulls_scores, encoded_nulls_std)
 
         print(f'Results: {scores}')
         print('***********Generating final output***********')
@@ -536,7 +530,8 @@ def eval_imputation_method_wrapper(dataframe, target_label, test_size=0.2, model
                            'classification': classification, 'evaluation_metric': evaluation_metric,
                            'encode_nulls': True, 'return_mapping': False}
 
-        func, params = get_func_params(scores, input_params=['func', 'strategy'], classification=classification)
+        func, params = get_func_params(scores, input_params={'func': None, 'strategy': str},
+                                       classification=classification)
 
         output_df = get_output_df_wrapper(functions_dict=init_funcs_dict, sub_functions_dict=funcs_dict,
                                           function_name=func,
@@ -581,7 +576,7 @@ def get_feature_importance_wrapper(dataframe: pd.DataFrame, target_label: str, m
         return get_feature_importance_rf_xgb(dataframe, target_label, classification=classification, algorithm='XGB',
                                              save_figure=save_figure).head(n_features)
 
-
+# UPDATED
 def evaluate_oversamplers(dataframe: pd.DataFrame, target_label: str, classification=True, evaluation_metric='accuracy',
                           test_size=0.2, class_threshold=5, model=RandomForestClassifier(), random_state=0):
     """
@@ -623,10 +618,10 @@ def evaluate_oversamplers(dataframe: pd.DataFrame, target_label: str, classifica
     sub_functions_dict = {'random_os': fit_random_os, 'smote_os': fit_smote_os}
     functions_dict = {'dataframe': dataframe, 'target_label': target_label,
                       'classification': classification, 'evaluation_metric': evaluation_metric, 'test_size': test_size,
-                      'class_threshold': class_threshold,
-                      'model': model, 'random_state': random_state, 'return_df': True}
+                      'class_threshold': class_threshold, 'model': model, 'random_state': random_state,
+                      'return_df': True}
 
-    func, params = get_func_params(scores, input_params=['func'], classification=classification)
+    func, params = get_func_params(scores, input_params={'func': None}, classification=classification)
 
     output_df = get_output_df_wrapper(functions_dict=functions_dict, sub_functions_dict=sub_functions_dict,
                                       function_name=func, params=params)
@@ -638,7 +633,7 @@ def eval_model_scaler_wrapper(dataframe, target_label, model_name, k_fold_method
                               n_repeats=10, classification=True, evaluation_metric='accuracy'):
     """
     Args:
-        model_name: 
+        model_name:
         dataframe:
         target_label:
         k_fold_method:
@@ -655,7 +650,7 @@ def eval_model_scaler_wrapper(dataframe, target_label, model_name, k_fold_method
     scores = {}
 
     for scaler_name, scaler in scalers.items():
-        print(f'Processing: {scaler_name}')
+        print(f'Processing scaler: {scaler_name}')
         cv_score, cv_score_std = get_scaled_x_score(dataframe, target_label, model_name=model_name,
                                                     scaler_name=scaler_name, use_transformers=False,
                                                     k_fold_method=k_fold_method,
@@ -663,35 +658,46 @@ def eval_model_scaler_wrapper(dataframe, target_label, model_name, k_fold_method
                                                     classification=classification,
                                                     evaluation_metric=evaluation_metric)
 
-        scores[f'scale_x-{None}-{scaler_name}'] = (cv_score, cv_score_std)
+        scores[f'scale_x-{None}-{scaler_name}-{False}'] = (cv_score, cv_score_std)
 
         for transformer_name, transformer in transformers.items():
-            print(f'Processing: {transformer_name}')
-            cv_score, cv_score_std = get_scaled_x_score(dataframe, target_label, model_name=model_name,
+            try:
+                print(f'Processing transformer: {transformer_name}')
+                cv_score, cv_score_std = get_scaled_x_score(dataframe, target_label, model_name=model_name,
                                                         scaler_name=scaler_name, use_transformers=True,
                                                         transformer_name=transformer_name,
                                                         k_fold_method=k_fold_method,
                                                         n_folds=n_folds, n_repeats=n_repeats,
                                                         classification=classification,
                                                         evaluation_metric=evaluation_metric)
+                scores[f'scale_x-{transformer_name}-{scaler_name}-{True}'] = (cv_score, cv_score_std)
+            except ValueError as err:
+                print(f'You got error:{err} Transformer {transformer_name} does not work with this dataframe')
+                pass
 
-            scores[f'scale_x-{transformer_name}-{scaler_name}'] = (cv_score, cv_score_std)
+    print(f'Current scores:{scores}')
 
-    print('Generating graph')
+    # Uncomment this line to see graphs
+    # print('Generating graph')
 
     # get_graph(input_data=scores, stage='Feature Engineering', figsize=(7, 4), color=color, horizontal=True,
     #         style='seaborn-darkgrid', fig_title=f'Best model/scaler combination', x_title='Params', y_title='Scores', save_figure=True,
     #        file_name='best_scalers_g3')
 
+    print('***********Generating final output***********')
+
     funcs_dict = {'scale_x': scale_x}
 
-    func, params = get_func_params(scores, input_params=['func', 'transformer_name', 'scaler_name'],
-                                   classification=classification)
-    output_df = get_output_df(funcs_dict=funcs_dict, func=func, dataframe=dataframe, target_label=target_label,
-                              **params)
-    output_df = pd.DataFrame(output_df, columns=dataframe.columns)
+    init_funcs_dict = {'dataframe': dataframe, 'target_label': target_label, 'model_name': model_name,
+                       'k_fold_method': k_fold_method, 'n_folds': n_folds, 'n_repeats': n_repeats,
+                       'classification': classification, 'evaluation_metric': evaluation_metric}
 
-    print(f'Results:{scores}')
+    func, params = get_func_params(scores, input_params={'func': None, 'transformer_name': str, 'scaler_name': str,
+                                                         'use_transformers': from_str_to_bool},
+                                   classification=classification)
+
+    output_df = get_output_df_wrapper(functions_dict=init_funcs_dict, sub_functions_dict=funcs_dict, function_name=func,
+                                      params=params)
 
     return scores, output_df
 
@@ -739,7 +745,7 @@ def handle_outliers(dataframe, target_label, distribution='non_gaussian', tot_ou
                                                tot_outlier_pct=tot_outlier_pct,
                                                strategy=strategy, use_custom_method=True,
                                                custom_method=drop_outliers)
-    scores[f'drop_outliers-'] = (drop_score, drop_std)
+    scores[f'drop_outliers-{None}'] = (drop_score, drop_std)
     print(f'General scores: {scores}')
 
     print('***********Generating final output***********')
@@ -751,7 +757,7 @@ def handle_outliers(dataframe, target_label, distribution='non_gaussian', tot_ou
                        'evaluation_metric': evaluation_metric,
                        'test_size': test_size, 'n_folds': n_folds, 'n_repeats': n_repeats}
 
-    func, params = get_func_params(scores, input_params=['func', 'strategy'], classification=classification)
+    func, params = get_func_params(scores, input_params={'func':None, 'strategy':str}, classification=classification)
 
     output_df = get_output_df_wrapper(functions_dict=init_funcs_dict, sub_functions_dict=funcs_dict, function_name=func,
                                       params=params)
@@ -914,56 +920,3 @@ def evaluate_models_wrapper(dataframe: pd.DataFrame, target_label: str, models_l
     return scores
 
 
-@time_performance_decor
-@gc_collect_decor
-def grid_search_wrapper(dataframe: pd.DataFrame, target_label: str, param_grid: dict, model=RandomForestClassifier(),
-                        evaluation_metric="accuracy", n_jobs=-1, verbose=3, n_folds=3, n_repeats=3,
-                        k_fold_method='stratified_k_fold', grid_search_method='randomized', random_state=seed):
-    """
-
-    Args:
-        evaluation_metric: 
-        target_label: 
-        dataframe: 
-        model:
-        param_grid:
-        n_jobs:
-        verbose:
-        n_folds:
-        n_repeats:
-        k_fold_method:
-        grid_search_method:
-        random_state:
-
-    Returns:
-
-    """
-    x, y = get_x_y_from_df(dataframe, target_label)
-
-    k_fold_methods_dict = {'k_fold': KFold(n_splits=n_folds, shuffle=True),
-                           'repeated_k_fold': RepeatedKFold(n_splits=n_folds, n_repeats=n_repeats,
-                                                            random_state=random_state),
-                           'stratified_k_fold': StratifiedKFold(n_splits=n_folds, shuffle=True,
-                                                                random_state=random_state),
-                           'repeated_stratified_k_fold': RepeatedStratifiedKFold(n_splits=n_folds,
-                                                                                 n_repeats=n_repeats,
-                                                                                 random_state=random_state)}
-
-    current_kfold = k_fold_methods_dict[k_fold_method]
-
-    grid_search_dict = {
-        'randomized': RandomizedSearchCV(model, param_grid, scoring=evaluation_metric, n_jobs=n_jobs, cv=current_kfold,
-                                         verbose=verbose),
-        'gridsearch': GridSearchCV(model, param_grid, scoring=evaluation_metric, n_jobs=n_jobs, cv=current_kfold,
-                                   verbose=verbose)}  # this does not save results during the process
-
-    current_grid_search = grid_search_dict[grid_search_method]
-
-    try:
-        grid_result = current_grid_search.fit(x, y)
-        print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
-        return grid_result
-
-    except ValueError as err:
-        print(f'You got following error: {err}')
-        pass

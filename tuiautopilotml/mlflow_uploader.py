@@ -88,8 +88,16 @@ class MLFlow:
         with mlflow.start_run(run_name=run_name):
 
             for param, value in config_results.items():
-                if param == self.config_dict['evaluation_metric'] or param == 'std':
+                if param == self.config_dict['evaluation_metric']:
                     mlflow.log_metric(param, value)
+                    # ****** TESTING MODE
+                elif param == 'std':
+                    if value is not None:
+                        mlflow.log_metric(param, value)
+                    else:
+                        print('STD is None so we pass')
+                        pass
+                    # ****** TESTING MODE
                 else:
                     mlflow.log_param(param, value)
 

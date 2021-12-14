@@ -72,7 +72,7 @@ hyper_params = {'clf': ({'XGB': {'n_estimators': hp.choice('n_estimators', [10, 
                          }), 'reg': ({})}
 
 transformers = {'KBins': KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='uniform'),
-                'PCA': PCA(n_components=7),  # adjust this dynamically
+                'PCA': PCA(n_components=7),  # adjust this dynamically and get name of columns
                 'Truncated': TruncatedSVD(n_components=3),
                 'PowerTransformer': PowerTransformer(),
                 'Quantile': QuantileTransformer(n_quantiles=100, output_distribution='normal')}
