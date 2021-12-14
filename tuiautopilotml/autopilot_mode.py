@@ -14,7 +14,7 @@ def autopilot_mode(steps: list, config_dict: dict):
     """
 
     # Define initial checkpoints
-    # these 3 will generate data frames
+
     initial_check_points = ['dataframe_transformation', 'encoding', 'handle_missing_values']
     support_functions = ['baseline_score']
     scoring_functions = ['evaluate_models']  # this includes functions that returns scores, (scores, std )
@@ -48,7 +48,7 @@ def autopilot_mode(steps: list, config_dict: dict):
                 functions[i](**current_params)
 
             elif functions_names[i] in scoring_functions:
-
+                print(f'Scoring function')  # debugging purposes
                 # this functions only takes scores as input
                 scores = functions[i](**current_params)
                 update_upload_config(scores=scores, config_dict=config_dict,
@@ -60,7 +60,7 @@ def autopilot_mode(steps: list, config_dict: dict):
                                      run_name=f'{run_id_number}_{functions_names[i]}_stage')
 
             else:
-                print(f'Mixed function: {functions_names[i]}')
+                print(f'Mixed function')# debugging purposes
                 scores, result_df = functions[i](**current_params)
                 # this functions take a result df as input
                 update_upload_config(scores=scores, config_dict=config_dict, result_df=result_df,

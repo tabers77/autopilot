@@ -1384,8 +1384,8 @@ def get_imputed_x(dataframe: pd.DataFrame, strategy: str):
     print(f'Columns with missing values: {cols_with_missing}')
     print(f'Running strategy {strategy}')
     dataframe = dataframe.copy()
-    inputer = SimpleImputer(strategy=strategy)
-    dataframe[cols_with_missing] = inputer.fit_transform(dataframe[cols_with_missing])
+    imputer = SimpleImputer(strategy=strategy)
+    dataframe[cols_with_missing] = imputer.fit_transform(dataframe[cols_with_missing])
     encoded_df = get_encoded_wrapper(dataframe)
 
     return encoded_df
@@ -1451,7 +1451,7 @@ def get_scaled_x_score(dataframe, target_label, model_name='RF', scaler_name='Mi
 
 """******** AUTOPILOT MODE FUNCTIONS ******** """
 
-#****UPDATED FUNCTION****
+#****UPDATED FUNCTIONS****
 def get_output_df_wrapper(functions_dict, sub_functions_dict, function_name, params):
 
     """Wrapper function"""
@@ -1464,14 +1464,13 @@ def get_output_df_wrapper(functions_dict, sub_functions_dict, function_name, par
         combination_dict = {**params, **params_excluded_dict}
         print('returning combination dict')
         return sub_functions_dict[function_name](**combination_dict)
-
     else:
         print('returning params_excluded_dict')
-
         return sub_functions_dict[function_name](**params_excluded_dict)
 
 
 def get_best_score(scores, classification=True):
+
     score = max({v[0] for k, v in scores.items()}) if classification else min({v[0] for k, v in scores.items()})
     tups = [(v[0], v[1]) for k, v in scores.items() if v[0] == score][0]
     new_scores, new_std = tups[0], tups[1]
@@ -1508,7 +1507,7 @@ def get_latest_score(config_dict: dict):
         pass
 
 
-def update_config(key=None, value=None, config_dict: dict = None, **kwargs):
+def update_config(config_dict: dict = None, key=None, value=None,  **kwargs):
 
     if key is not None and len(kwargs) == 0:
         config_dict[key] = value
@@ -1528,7 +1527,7 @@ def new_score_is_significant(scores: dict, config_dict: dict, classification=Tru
 
     if classification:
 
-        if new_std is None or std_score is None:  # testing this logic
+        if pd.isna(new_std) or pd.isna(std_score):
             if new_score > mean_score:
                 return True
             else:
@@ -1539,7 +1538,7 @@ def new_score_is_significant(scores: dict, config_dict: dict, classification=Tru
             else:
                 return False
     else:
-        if new_std is None or std_score is None:
+        if pd.isna(new_std) or pd.isna(std_score):
             if new_score < mean_score:
                 return True
             else:
@@ -1562,11 +1561,11 @@ def get_params_to_upload(config_dict: dict, params_keys: dict):
 def update_upload_config(scores: dict, config_dict: dict, result_df=None, tuned_params=None, run_name='run_name'):
 
     params_keys = [config_dict['evaluation_metric'], 'std', 'k_fold_method', 'n_folds', 'n_repeats', 'seed',
-                   'n_jobs', 'num_rows', 'model_name', 'best_method']
+                   'n_jobs', 'num_rows', 'model_name', 'best_method', 'tuned_params']
 
     if new_score_is_significant(scores, config_dict, classification=config_dict['classification']):
 
-        print('Results are significant, updating config...')
+        print('Results are significant, updating config and uploading from config file...')
 
         # Save new best scores
         new_score, new_std, best_method = get_best_score(scores, classification=config_dict['classification'])
@@ -1586,7 +1585,8 @@ def update_upload_config(scores: dict, config_dict: dict, result_df=None, tuned_
             # Save best model name  and num_rows. This is works only eval_models wrapper
             update_config(model_name=best_method, config_dict=config_dict)  # add num rows
 
-        # Upload relevant results to MLFLOW
+        # Upload from conflig file
+
         uploader = MLFlow(config_dict, params_keys)
         uploader.upload_config_file(run_name=run_name)
 
@@ -1597,10 +1597,7 @@ def update_upload_config(scores: dict, config_dict: dict, result_df=None, tuned_
 
 
 def get_baseline_score(dataframe: pd.DataFrame, target_label: str, classification: bool, evaluation_metric: str,
-                       run_id_number: int,
-                       model_name, k_fold_method='k_fold',
-                       n_folds=3,
-                       n_repeats=10):
+                       run_id_number: int, model_name, k_fold_method='k_fold', n_folds=3, n_repeats=10):
     """Get a baseline score """
     model = models['clf'][model_name] if classification else models['reg'][model_name]
     x, y = get_x_y_from_df(dataframe=dataframe, target_label=target_label, scaled_df=False)
@@ -1631,7 +1628,7 @@ def get_params_from_config(func, config_dict: dict):
     return params
 
 
-"""******** OTHER ******** """
+"""******** APPENDIX: OTHER ******** """
 
 
 def select_best_estimator(selected_estimator=None):

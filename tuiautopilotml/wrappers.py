@@ -739,12 +739,11 @@ def handle_outliers(dataframe, target_label, distribution='non_gaussian', tot_ou
     print('Drop values')
 
     drop_score, drop_std = get_custom_cv_score(dataframe=dataframe, target_label=target_label,
-                                               classification=classification,
-                                               evaluation_metric=evaluation_metric, model=model,
-                                               test_size=test_size, distribution=distribution,
-                                               tot_outlier_pct=tot_outlier_pct,
-                                               strategy=strategy, use_custom_method=True,
-                                               custom_method=drop_outliers)
+                                               classification=classification, evaluation_metric=evaluation_metric,
+                                               model=model, test_size=test_size,
+                                               distribution=distribution, tot_outlier_pct=tot_outlier_pct,
+                                               use_custom_method=True, custom_method=drop_outliers)
+
     scores[f'drop_outliers-{None}'] = (drop_score, drop_std)
     print(f'General scores: {scores}')
 
@@ -757,7 +756,7 @@ def handle_outliers(dataframe, target_label, distribution='non_gaussian', tot_ou
                        'evaluation_metric': evaluation_metric,
                        'test_size': test_size, 'n_folds': n_folds, 'n_repeats': n_repeats}
 
-    func, params = get_func_params(scores, input_params={'func':None, 'strategy':str}, classification=classification)
+    func, params = get_func_params(scores, input_params={'func': None, 'strategy': str}, classification=classification)
 
     output_df = get_output_df_wrapper(functions_dict=init_funcs_dict, sub_functions_dict=funcs_dict, function_name=func,
                                       params=params)
@@ -883,12 +882,10 @@ def evaluate_models_wrapper(dataframe: pd.DataFrame, target_label: str, models_l
     for model_name, model in current_model_dict.items():
         print(f'Calculating results for {model_name}')
 
-        # ML FLOW
+        # Upload results to MLflow
 
         uploader = MLFlow()
-
         func = get_cross_val_score_wrapper
-
         cv_results = uploader.upload_from_function(func=func, x=x, y=y,
                                                    model_name=model_name,
                                                    evaluation_metric=evaluation_metric,

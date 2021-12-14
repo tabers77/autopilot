@@ -59,7 +59,7 @@ class MLFlow:
                 mlflow.log_param('N features', len(tuple(dataframe.columns)))
                 mlflow.log_param('Features', tuple(dataframe.columns))
 
-            print('Logging sklearn artifacts...')
+            print('Logging SK-LEARN artifacts...')
 
             mlflow.sklearn.log_model(model, model_name)
 
