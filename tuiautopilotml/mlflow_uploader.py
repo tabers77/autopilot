@@ -1,6 +1,42 @@
 import mlflow
 
 
+def upload_baseline_score(dataframe, run_id_number, evaluation_metric, scores, model):
+    run_name = f'{run_id_number}_baseline_score_stage'
+    with mlflow.start_run(run_name=run_name):
+        mlflow.log_metric(evaluation_metric, scores[0])
+        mlflow.log_metric('std', scores[1])
+
+        for name, param_value in model.get_params().items():
+            if param_value is not None:
+                mlflow.log_param(name, param_value)
+
+        mlflow.log_param('num_rows', dataframe.shape[0])
+        mlflow.log_param('num_features', len(tuple(dataframe.columns)))
+        mlflow.log_param('features', tuple(dataframe.columns))
+
+        print('Logging sklearn artifacts...')
+
+        mlflow.sklearn.log_model(model, run_name)
+
+    print('Find your results here: http://localhost:5000/')
+
+    mlflow.end_run()
+
+
+def upload_sklearn_model_params(model_name: str, model=None):
+
+    with mlflow.start_run(run_name=model_name):
+        for name, param_value in model.get_params().items():
+            if param_value is not None:
+                mlflow.log_param(name, param_value)
+
+        print('Logging SK-LEARN artifacts...')
+        mlflow.sklearn.log_model(model, model_name)
+
+
+
+
 class MLFlow:
 
     def __init__(self, config_dict=None, params_keys=None):
@@ -90,14 +126,13 @@ class MLFlow:
             for param, value in config_results.items():
                 if param == self.config_dict['evaluation_metric']:
                     mlflow.log_metric(param, value)
-                    # ****** TESTING MODE
+
                 elif param == 'std':
                     if value is not None:
                         mlflow.log_metric(param, value)
                     else:
-                        print('STD is None so we pass')
+                        #print('STD is None so we pass')
                         pass
-                    # ****** TESTING MODE
                 else:
                     mlflow.log_param(param, value)
 
@@ -105,26 +140,3 @@ class MLFlow:
 
         mlflow.end_run()
 
-    @staticmethod
-    def upload_baseline_score(dataframe, run_id_number, evaluation_metric, scores, model):
-
-        run_name = f'{run_id_number}_baseline_score_stage'
-        with mlflow.start_run(run_name=run_name):
-            mlflow.log_metric(evaluation_metric, scores[0])
-            mlflow.log_metric('std', scores[1])
-
-            for name, param_value in model.get_params().items():
-                if param_value is not None:
-                    mlflow.log_param(name, param_value)
-
-            mlflow.log_param('num_rows', dataframe.shape[0])
-            mlflow.log_param('num_features', len(tuple(dataframe.columns)))
-            mlflow.log_param('features', tuple(dataframe.columns))
-
-            print('Logging sklearn artifacts...')
-
-            mlflow.sklearn.log_model(model, run_name)
-
-        print('Find your results here: http://localhost:5000/')
-
-        mlflow.end_run()

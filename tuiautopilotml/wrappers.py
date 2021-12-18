@@ -576,6 +576,7 @@ def get_feature_importance_wrapper(dataframe: pd.DataFrame, target_label: str, m
         return get_feature_importance_rf_xgb(dataframe, target_label, classification=classification, algorithm='XGB',
                                              save_figure=save_figure).head(n_features)
 
+
 # UPDATED
 def evaluate_oversamplers(dataframe: pd.DataFrame, target_label: str, classification=True, evaluation_metric='accuracy',
                           test_size=0.2, class_threshold=5, model=RandomForestClassifier(), random_state=0):
@@ -753,8 +754,7 @@ def handle_outliers(dataframe, target_label, distribution='non_gaussian', tot_ou
 
     init_funcs_dict = {'dataframe': dataframe, 'target_label': target_label, 'distribution': distribution,
                        'tot_outlier_pct': tot_outlier_pct, 'classification': classification, 'model': model,
-                       'evaluation_metric': evaluation_metric,
-                       'test_size': test_size, 'n_folds': n_folds, 'n_repeats': n_repeats}
+                       'evaluation_metric': evaluation_metric,'test_size': test_size, 'n_folds': n_folds, 'n_repeats': n_repeats}
 
     func, params = get_func_params(scores, input_params={'func': None, 'strategy': str}, classification=classification)
 
@@ -826,11 +826,12 @@ def get_stacking(models_dict=None, n_folds=3, classification=True):
     return model
 
 
-def evaluate_models_wrapper(dataframe: pd.DataFrame, target_label: str, models_list: list,  scaled_df=True, scaler=scalers['Standard'],
-                            classification=True, multiple_eval_scores=False, multi_classif=False, evaluation_metric='accuracy', stacking=False, n_folds=3,
-                            n_repeats=3, random_state=seed, k_fold_method='k_fold', verbose=3, is_tuned_params=False, tuned_params=None):
+def evaluate_models_wrapper(dataframe: pd.DataFrame, target_label: str, models_list: list, scaled_df=True,
+                            scaler=scalers['Standard'], classification=True, multiple_eval_scores=False,
+                            multi_classif=False, evaluation_metric='accuracy', stacking=False, n_folds=3, n_repeats=3, random_state=seed,
+                            k_fold_method='k_fold', verbose=3, n_jobs=-1, is_tuned_params=False, tuned_params=None):
     """
-
+    This method uses standard scaler as default
     Args:
         dataframe:
         target_label:
@@ -859,16 +860,12 @@ def evaluate_models_wrapper(dataframe: pd.DataFrame, target_label: str, models_l
 
     if is_tuned_params:
         print('Using tuned version')
-
         current_model_dict = get_tuned_models_wrapper(tuned_params=tuned_params, models_dict=current_model_dict)
 
     if stacking:
-        print('Get stacking')
+        print('Adding stacked version to models dict..')
         current_model_dict['STACKED'] = get_stacking(n_folds=n_folds, classification=classification,
                                                      models_dict=current_model_dict)
-
-        print('Adding stacked version to models dict..')
-
         if classification:
             models['clf']['STACKED'] = get_stacking(n_folds=n_folds, classification=classification,
                                                     models_dict=current_model_dict)
@@ -876,44 +873,43 @@ def evaluate_models_wrapper(dataframe: pd.DataFrame, target_label: str, models_l
             models['reg']['STACKED'] = get_stacking(n_folds=n_folds, classification=classification,
                                                     models_dict=current_model_dict)
 
-    scores = {}
     x, y = get_x_y_from_df(dataframe, target_label, scaled_df=scaled_df, scaler=scaler)
+    scores = {}
+    models_dict = {}
 
     for model_name, model in current_model_dict.items():
-        print(f'Calculating results for {model_name}')
 
-        # Upload results to MLflow
-
-        uploader = MLFlow()
-        func = get_cross_val_score_wrapper
-        cv_results = uploader.upload_from_function(func=func, x=x, y=y,
-                                                   model_name=model_name,
-                                                   evaluation_metric=evaluation_metric,
-                                                   model=model, multiple_eval_scores=multiple_eval_scores,
-                                                   multi_classif=multi_classif,
-                                                   n_folds=n_folds, n_repeats=n_repeats, random_state=random_state,
-                                                   k_fold_method=k_fold_method, verbose=verbose)
+        cv_results = get_cross_val_score_wrapper(x=x, y=y, model=model,
+                                                 k_fold_method=k_fold_method,
+                                                 n_folds=n_folds, n_repeats=n_repeats, random_state=random_state,
+                                                 classification=classification, multi_classif=multi_classif,
+                                                 evaluation_metric=evaluation_metric,
+                                                 n_jobs=n_jobs, verbose=verbose)
 
         print(f'Score for {model_name}: {cv_results}')
         scores[model_name] = cv_results
+        models_dict[model_name] = model
 
-    # plot results
+    a, b, best_method = get_best_score(scores, classification=classification)
+
+
+    print('Generating graph')
+
     plot_dict = {k: v[f'test_{evaluation_metric}'] for k, v in
                  scores.items()} if multiple_eval_scores else {k: v[0] for k, v in scores.items()}
 
-    print('Generating graph')
     get_graph(input_data=plot_dict, stage='Models', figsize=(6, 4), color=current_color, horizontal=True,
               style='seaborn-darkgrid',
               fig_title=f'Best Models Scores', x_title='Params', y_title='Scores', save_figure=True,
               file_name='best_models_scores')
 
-    # we could save the following data frame in disk
+    # Uncomment this line to save the following data frame in disk
 
     #     results_df = dict_to_df(input_dict=scores, multiple_eval_scores=multiple_eval_scores,
     #                                   evaluation_metric=evaluation_metric)
 
-    print(f'Results:{scores}')
+    print(f'Final scores: {scores}')
 
-    return scores
+    return scores, models_dict[best_method]
 
 

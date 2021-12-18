@@ -53,7 +53,7 @@ from sklearn.model_selection import KFold
 import cross_validation as cv
 import datasets as d
 from dicts import scorers, replace_methods, models, hyper_params, scalers, transformers
-from mlflow_uploader import MLFlow
+from mlflow_uploader import MLFlow, upload_baseline_score, upload_sklearn_model_params
 # from tuiautopilotml import cross_validation as cv
 # from tuiautopilotml import datasets as d
 # from tuiautopilotml.dicts import scorers, replace_methods, models, hyper_params, scalers, transformers
@@ -287,18 +287,14 @@ def convert_to_int_float_date(dataframe: pd.DataFrame):
     """
     dataframe = dataframe.copy()
     for col in dataframe.columns:
-        print(f'Column being processed: {col}')
 
         if dataframe[col].dtypes == int:
-            print(f'Convert to int {col}')
             dataframe[col] = dataframe[col].astype(int)
 
         elif dataframe[col].dtypes == float:
-            print(f'Convert to float {col}')
             dataframe[col] = dataframe[col].astype(float)
 
         elif is_object_date(dataframe, col):
-            print(f'Convert to date {col}')
             dataframe[col] = pd.to_datetime(dataframe[col])
 
     return dataframe
@@ -570,7 +566,6 @@ def get_custom_cv_score(dataframe: pd.DataFrame, target_label: str, classificati
     scorer = scorers['clf'][evaluation_metric] if classification else scorers['reg'][evaluation_metric]
     size = int(len(dataframe) * test_size)
     folds_lst = [i for i in range(0, len(dataframe), size)]
-    print(folds_lst)
     test_index = []
     scores = []
 
@@ -594,7 +589,7 @@ def get_custom_cv_score(dataframe: pd.DataFrame, target_label: str, classificati
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
         scores.append(scorer(y_test, y_pred))
-        print(scores)
+        print(f'Custom cv scores:{scores}')
 
     return np.mean(scores), np.std(scores)
 
@@ -1311,10 +1306,7 @@ def optuna_wrapper(dataframe: pd.DataFrame, target_label: str, model_name='XGB',
         pass
 
 
-
-@time_performance_decor
-@gc_collect_decor
-def grid_search_wrapper(dataframe: pd.DataFrame, target_label: str, param_grid: dict, model=models['clf']['RF'],
+def grid_search_wrapper(dataframe: pd.DataFrame, target_label: str, model=models['clf']['RF'],
                         evaluation_metric="accuracy", n_jobs=-1, verbose=3, n_folds=3, n_repeats=3,
                         k_fold_method='stratified_k_fold', grid_search_method='randomized', random_state=seed):
     """
@@ -1336,6 +1328,7 @@ def grid_search_wrapper(dataframe: pd.DataFrame, target_label: str, param_grid: 
     Returns:
 
     """
+    param_grid = None  # temp
     x, y = get_x_y_from_df(dataframe, target_label)
 
     k_fold_methods_dict = {'k_fold': KFold(n_splits=n_folds, shuffle=True),
@@ -1360,7 +1353,7 @@ def grid_search_wrapper(dataframe: pd.DataFrame, target_label: str, param_grid: 
     try:
         grid_result = current_grid_search.fit(x, y)
         print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
-        return grid_result
+        return grid_result.best_score_, grid_result.best_params_
 
     except ValueError as err:
         print(f'You got following error: {err}')
@@ -1518,7 +1511,6 @@ def update_config(config_dict: dict = None, key=None, value=None,  **kwargs):
 
 
 def new_score_is_significant(scores: dict, config_dict: dict, classification=True):
-    print('obtaining latest score..')
 
     mean_score, std_score = get_latest_score(config_dict=config_dict)
     new_score, new_std, best_method = get_best_score(scores, classification=classification)
@@ -1533,10 +1525,17 @@ def new_score_is_significant(scores: dict, config_dict: dict, classification=Tru
             else:
                 return False
         else:
-            if new_score > mean_score and new_std <= std_score:
+            #***** test
+            diff = round(new_score - mean_score, 4)
+            if diff >= 0.024:
                 return True
             else:
-                return False
+                if new_score >= mean_score and new_std <= std_score:
+                    return True
+                else:
+                    return False
+            #***** test
+
     else:
         if pd.isna(new_std) or pd.isna(std_score):
             if new_score < mean_score:
@@ -1558,7 +1557,7 @@ def get_params_to_upload(config_dict: dict, params_keys: dict):
     return results
 
 
-def update_upload_config(scores: dict, config_dict: dict, result_df=None, tuned_params=None, run_name='run_name'):
+def update_upload_config(scores: dict, config_dict: dict, run_name='run_name', result_df=None, tuned_params=None, best_model_params=None):
 
     params_keys = [config_dict['evaluation_metric'], 'std', 'k_fold_method', 'n_folds', 'n_repeats', 'seed',
                    'n_jobs', 'num_rows', 'model_name', 'best_method', 'tuned_params']
@@ -1580,6 +1579,10 @@ def update_upload_config(scores: dict, config_dict: dict, result_df=None, tuned_
 
         elif tuned_params is not None:
             update_config(model_name=best_method, tuned_params=tuned_params, config_dict=config_dict)
+
+        elif best_model_params is not None:
+            update_config(model_name=best_method, best_model_params=best_model_params.get_params(), config_dict=config_dict)
+            upload_sklearn_model_params(model_name=best_method, model=best_model_params)
 
         else:
             # Save best model name  and num_rows. This is works only eval_models wrapper
@@ -1608,10 +1611,8 @@ def get_baseline_score(dataframe: pd.DataFrame, target_label: str, classificatio
                                          evaluation_metric=evaluation_metric,
                                          n_jobs=-1, verbose=3)
     # Uploading results to MLFLOW
-    run_name = f'{run_id_number}_baseline_score_stage'
 
-    uploader = MLFlow()
-    uploader.upload_baseline_score(dataframe, run_name, evaluation_metric, scores, model)
+    upload_baseline_score(dataframe, run_id_number, evaluation_metric, scores, model)
 
     print(f'Score: {scores[0]} Std:{scores[1]}')
 

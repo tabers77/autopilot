@@ -67,8 +67,14 @@ hyper_params = {'clf': ({'XGB': {'n_estimators': hp.choice('n_estimators', [10, 
                              'dropout2': hp.choice('dropout2', [.3]),
                              'batch_size': hp.choice('batch_size', [16, 128]),
                              'optimizer': hp.choice('optimizer', ['adam']),
-                             'epochs': hp.choice('epochs', [100])
-                         }
+                             'epochs': hp.choice('epochs', [100])},
+
+                         'NB': {'var_smoothing': hp.choice('input_n', list(np.logspace(0, -9, num=100)))},
+                         'SVC': {},
+                         'ADA': {'n_estimators': hp.choice('n_estimators',
+                                                          [int(x) for x in np.linspace(
+                                                              start=200, stop=2000, num=10)])}
+
                          }), 'reg': ({})}
 
 transformers = {'KBins': KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='uniform'),

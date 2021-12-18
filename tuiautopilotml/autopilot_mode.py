@@ -8,9 +8,7 @@ def autopilot_mode(steps: list, config_dict: dict):
     Recommended steps:
 
     dataframe_transformation >> eval_imputation_method_wrapper >> get_encoded_wrapper >> get_baseline_score
-    >> handle_outliers >> evaluate_oversamplers >> evaluate_models_wrapper >> hyper_opt_manual
-
-
+    >> handle_outliers >> evaluate_oversamplers >> evaluate_models_wrapper >> reduced features models >> hyper_opt_manual
     """
 
     # Define initial checkpoints
@@ -18,7 +16,7 @@ def autopilot_mode(steps: list, config_dict: dict):
     initial_check_points = ['dataframe_transformation', 'encoding', 'handle_missing_values']
     support_functions = ['baseline_score']
     scoring_functions = ['evaluate_models']  # this includes functions that returns scores, (scores, std )
-    hyper_p_steps = ['hyper_param_opt', 'optuna']
+    hyper_p_steps = ['hyper_param_opt', 'optuna', 'grid_search']
 
     # Generate a run id
     run_id_number = config_dict['run_id_number']
@@ -50,9 +48,9 @@ def autopilot_mode(steps: list, config_dict: dict):
             elif functions_names[i] in scoring_functions:
                 print(f'Scoring function')  # debugging purposes
                 # this functions only takes scores as input
-                scores = functions[i](**current_params)
+                scores, best_model_params = functions[i](**current_params)
                 update_upload_config(scores=scores, config_dict=config_dict,
-                                     run_name=f'{run_id_number}_{functions_names[i]}_stage')
+                                     run_name=f'{run_id_number}_{functions_names[i]}_stage', best_model_params=best_model_params)
 
             elif functions_names[i] in hyper_p_steps:
                 scores, params = functions[i](**current_params)
