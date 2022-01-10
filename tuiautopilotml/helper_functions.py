@@ -8,6 +8,7 @@ from datetime import date
 from datetime import datetime as dt
 from inspect import getfullargspec
 import distutils
+import logging
 # INIT PACKAGES
 from time import time
 
@@ -53,11 +54,21 @@ from sklearn.model_selection import KFold
 import cross_validation as cv
 import datasets as d
 from dicts import scorers, replace_methods, models, hyper_params, scalers, transformers
-from mlflow_uploader import MLFlow, upload_baseline_score, upload_sklearn_model_params
+from mlflow_uploader import MLFlow, upload_baseline_score, upload_artifacts
 # from tuiautopilotml import cross_validation as cv
 # from tuiautopilotml import datasets as d
 # from tuiautopilotml.dicts import scorers, replace_methods, models, hyper_params, scalers, transformers
 # from tuiautopilotml.mlflow_uploader import MLFlow
+
+# TESTING THESE LIBS
+import tensorflow as tf
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.layers import Dropout
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.python.client import device_lib
+
 
 current_color = 'firebrick'
 current_palette = 'mako'
@@ -386,8 +397,7 @@ def train_test_split_from_df(dataframe: pd.DataFrame, test_size: float):
 
 
 def get_splits_wrapper(dataframe: pd.DataFrame, target_label: str, train_split=False, scaled=False,
-                       scaler=StandardScaler(),
-                       validation_set=False, test_size=0.2):
+                       scaler=StandardScaler(), validation_set=False, test_size=0.2):
     """
     Get your initial splits
     Args:
@@ -1215,7 +1225,7 @@ def hyper_opt_manual(dataframe: pd.DataFrame, target_label: str, model_name=None
 
     print(f'Results:{results}')
 
-    return results, params
+    return results, params, best_model['model']
 
 
 # @time_performance_decor
@@ -1299,7 +1309,7 @@ def optuna_wrapper(dataframe: pd.DataFrame, target_label: str, model_name='XGB',
         optuna.visualization.plot_optimization_history(study)
         best_score = study.best_value
         scores = {model_name: (best_score, None)}
-        return scores, best_params[1]
+        return scores, best_params[1], model
 
     else:
         print(f'There are still no parameters for algorithm {model_name}')
@@ -1442,6 +1452,55 @@ def get_scaled_x_score(dataframe, target_label, model_name='RF', scaler_name='Mi
     return scores[0], scores[1]
 
 
+"""******** KERAS-MLP MODEL ******** """
+
+
+def get_mlp_model(X, y, activation_f_type='classif', optimizer='adam',
+                  regulator=10, hl_activation='relu', evaluation_metric='accuracy'):
+    """
+    MLP for baseline model creation
+    """
+
+    # print(f'Numeber of features: {X_train.shape[1]}')
+
+    n_inputs = X.shape[1]
+    n_outputs = int(y.nunique())
+
+    if activation_f_type == 'classif':
+        o_activation = 'sigmoid'
+        loss = 'binary_crossentropy'
+
+    elif activation_f_type == 'multiclass':
+        o_activation = 'softmax'
+        loss = 'categorical_crossentropy'
+
+    elif activation_f_type == 'reg':
+        o_activation = 'linear'
+        loss = 'mean_squared_error'
+
+    print(f'Activation function used for output layer: {o_activation}')
+
+    n_neurons = int(np.sqrt(n_inputs * n_outputs) * regulator)
+    print(f'Number of neurons: {n_neurons}-{int(n_neurons / 2.5)}-{int(n_neurons / 5.5)}')
+
+    model = Sequential()
+    model.add(Dense(n_neurons, input_dim=n_inputs, activation=hl_activation))  # input layer
+
+    model.add(Dropout(0.3))
+
+    model.add(Dense(int(n_neurons / 2.5), activation=hl_activation))
+    model.add(Dropout(0.3))
+
+    model.add(Dense(int(n_neurons / 5.5), activation=hl_activation))
+    model.add(Dropout(0.1))
+
+    model.add(Dense(n_outputs, activation=o_activation))  # output layer
+
+    model.compile(loss=loss, optimizer=optimizer, metrics=[evaluation_metric])
+
+    return model
+
+
 """******** AUTOPILOT MODE FUNCTIONS ******** """
 
 #****UPDATED FUNCTIONS****
@@ -1557,7 +1616,7 @@ def get_params_to_upload(config_dict: dict, params_keys: dict):
     return results
 
 
-def update_upload_config(scores: dict, config_dict: dict, run_name='run_name', result_df=None, tuned_params=None, best_model_params=None):
+def update_upload_config(scores: dict, config_dict: dict, run_name='run_name', result_df=None, tuned_params=None, model=None):
 
     params_keys = [config_dict['evaluation_metric'], 'std', 'k_fold_method', 'n_folds', 'n_repeats', 'seed',
                    'n_jobs', 'num_rows', 'model_name', 'best_method', 'tuned_params']
@@ -1578,11 +1637,15 @@ def update_upload_config(scores: dict, config_dict: dict, run_name='run_name', r
             params_keys.append(f'{run_name}_best_method')
 
         elif tuned_params is not None:
-            update_config(model_name=best_method, tuned_params=tuned_params, config_dict=config_dict)
+            update_config(model_name=best_method, best_model_params=model.get_params(), tuned_params=tuned_params, config_dict=config_dict)
+            upload_artifacts(model_name=f'{best_method}_tuned_params', model=model)
 
-        elif best_model_params is not None:
-            update_config(model_name=best_method, best_model_params=best_model_params.get_params(), config_dict=config_dict)
-            upload_sklearn_model_params(model_name=best_method, model=best_model_params)
+        elif model is not None:
+            if not isinstance(model, Sequential):
+                update_config(model_name=best_method, best_model_params=model.get_params(), config_dict=config_dict)
+            else:
+                update_config(model_name=best_method, config_dict=config_dict)
+            upload_artifacts(model_name=best_method, model=model)
 
         else:
             # Save best model name  and num_rows. This is works only eval_models wrapper

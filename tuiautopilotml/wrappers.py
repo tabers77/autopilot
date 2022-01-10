@@ -48,6 +48,8 @@ from sklearn.linear_model import LinearRegression
 # models_list = select_best_estimator()
 models_list_default = ['KNN', 'NB', 'SVC', 'RF', 'XGB', 'ADA', 'MLP']
 
+# logging level
+logging.basicConfig(level=logging.INFO)
 seed = 0
 
 
@@ -134,7 +136,9 @@ def dataframe_transformation(dataframe: pd.DataFrame, cols_to_exclude=None, drop
     failures = df_sanity_check(dataframe=dataframe)
 
     if failures != 0:
-        print('Converting to int float and dates')
+        logging.warning('Test warning')# test
+        logging.debug('Running function: convert_to_int_float_date')  # test
+        #print('Converting to int float and dates')
         dataframe = convert_to_int_float_date(dataframe=dataframe)
 
         if drop_missing_values:
@@ -799,6 +803,9 @@ def handle_outliers_iso_forest(dataframe: pd.DataFrame, target_label: str, class
     return score
 
 
+"""******** MODELLING ********"""
+
+
 def get_stacking(models_dict=None, n_folds=3, classification=True):
     """
 
@@ -912,4 +919,37 @@ def evaluate_models_wrapper(dataframe: pd.DataFrame, target_label: str, models_l
 
     return scores, models_dict[best_method]
 
+
+def evaluate_mlp_model(base_encoded_df, target_label, activation_f_type='classif', optimizer='adam',regulator=10,
+                       hl_activation='relu', evaluation_metric='accuracy', metric_to_monitor='loss', mode='minimize',
+                       epochs=100,batch_size=128, n_splits=10, n_repeats=3, patience=10, verbose=1, random_state=0):
+
+    x, y = get_x_y_from_df(base_encoded_df, target_label, scaled_df=False)
+    x = x.values
+    results = list()
+
+    # define evaluation procedure
+    cv = RepeatedKFold(n_splits=n_splits, n_repeats=n_repeats, random_state=random_state)
+    early_stop = EarlyStopping(monitor=metric_to_monitor, mode=mode, verbose=verbose, patience=patience)
+
+    # enumerate folds
+    for train_ix, test_ix in cv.split(x):
+        X_train, X_test = x[train_ix], x[test_ix]
+        y_train, y_test = y[train_ix], y[test_ix]
+
+        model = get_mlp_model(x, y, activation_f_type= activation_f_type, optimizer=optimizer,
+                              regulator=regulator, hl_activation=hl_activation, evaluation_metric=evaluation_metric)
+        y_train = tf.keras.utils.to_categorical(y_train)
+
+        model.fit(X_train, y_train, epochs=epochs, verbose=verbose, callbacks=[early_stop], batch_size=batch_size)
+        # evaluate model on test set
+        prediction = model.predict(X_test, batch_size=batch_size, verbose=verbose)
+        prediction = np.argmax(prediction, axis=1)
+        score = scorers['clf'][evaluation_metric](y_test, prediction)
+
+        results.append(score)
+
+    results = {'mlp_model': [np.mean(results), np.std(results)]}
+
+    return results, model
 

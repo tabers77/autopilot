@@ -1,8 +1,0 @@
-artifact_path: STACKED
-flavors:
-  sklearn:
-    pickled_model: model.pkl
-    serialization_format: cloudpickle
-    sklearn_version: 0.24.2
-run_id: 672a218fcf2942acaf06d0dc3bb07c9d
-utc_time_created: '2021-12-17 12:32:01.576466'

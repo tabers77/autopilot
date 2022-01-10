@@ -1,4 +1,5 @@
 import mlflow
+from keras.models import Sequential
 
 
 def upload_baseline_score(dataframe, run_id_number, evaluation_metric, scores, model):
@@ -24,17 +25,19 @@ def upload_baseline_score(dataframe, run_id_number, evaluation_metric, scores, m
     mlflow.end_run()
 
 
-def upload_sklearn_model_params(model_name: str, model=None):
+def upload_artifacts(model_name: str, model=None):
 
     with mlflow.start_run(run_name=model_name):
-        for name, param_value in model.get_params().items():
-            if param_value is not None:
-                mlflow.log_param(name, param_value)
+        if not isinstance(model, Sequential):
+            for name, param_value in model.get_params().items():
+                if param_value is not None:
+                    mlflow.log_param(name, param_value)
 
-        print('Logging SK-LEARN artifacts...')
-        mlflow.sklearn.log_model(model, model_name)
-
-
+            print('Logging SK-LEARN artifacts...')
+            mlflow.sklearn.log_model(model, model_name)
+        else:
+            print('Logging SK-LEARN artifacts...')
+            mlflow.keras.log_model(model, model_name)
 
 
 class MLFlow:
