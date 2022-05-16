@@ -1,10 +1,24 @@
-# requirements.txt
-#
-# installs dependencies from ./setup.py, and the package itself,
-# in editable mode
--e .
-
-# (the -e above is optional). you could also just install the package
-# normally with just the line below (after uncommenting)
-# .
+shap
+pandas
+scikit-learn==0.24.2
+matplotlib
+hyperopt
+optuna
+imblearn
+seaborn
+xgboost
+numpy
+mlflow
+sweetviz
+google-cloud-bigquery
+tensorflow
+keras
+snowflake-connector-python
+py4j
 deprecated
+scipy
+snowflake-connector-python
+SQLAlchemy
+tuiconns
+snowflake-sqlalchemy
+

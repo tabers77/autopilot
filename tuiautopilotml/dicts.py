@@ -1,10 +1,8 @@
 """ Dictionaries """
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, mean_squared_error
-
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransformer, KBinsDiscretizer, PowerTransformer
 from sklearn.decomposition import PCA, TruncatedSVD
-
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, RandomForestRegressor
 from sklearn.naive_bayes import GaussianNB
@@ -12,15 +10,19 @@ from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.svm import SVC, SVR
-
 from xgboost import XGBClassifier, XGBRegressor
-
 from hyperopt import hp
 
 random_state = 0
 
-scorers = {'clf': ({'accuracy': accuracy_score, 'f1': f1_score}),
-           'reg': ({'mean_absolute_error': mean_absolute_error, 'mean_squared_error': mean_squared_error})}
+scoring_metrics = {'clf': ({'accuracy': accuracy_score,
+                            'f1': f1_score}),
+                   'reg': (
+                       {'neg_mean_absolute_error': mean_absolute_error,
+                        'mean_absolute_error': mean_absolute_error,
+                        'neg_mean_squared_error': mean_squared_error,
+                        'mean_squared_error': mean_squared_error
+                        })}
 
 replace_methods = {'mean': np.mean, 'median': np.median}
 
@@ -71,13 +73,29 @@ hyper_params = {'clf': ({'XGB': {'n_estimators': hp.choice('n_estimators', [10, 
 
                          'NB': {'var_smoothing': hp.choice('input_n', list(np.logspace(0, -9, num=100)))},
                          'SVC': {},
-                         'ADA': {'n_estimators': hp.choice('n_estimators',[int(x) for x in np.linspace(
-                                                              start=200, stop=2000, num=10)])}
+                         'ADA': {'n_estimators': hp.choice('n_estimators', [int(x) for x in np.linspace(
+                             start=200, stop=2000, num=10)])}
 
-                         }), 'reg': ({})}
+                         }),
+
+                'reg': ({'XGB': {'n_estimators': hp.choice('n_estimators', [10, 50, 300, 750, 1200, 1300, 1500]),
+                                 'max_depth': hp.choice('max_depth', [i for i in range(1, 11, 2)]),
+                                 'min_child_weight': hp.choice('min_child_weight', [i for i in range(1, 6, 2)]),
+                                 'gamma': hp.choice('gamma', [i / 10.0 for i in range(0, 5)])},
+
+                         'RF': {'n_estimators': hp.choice('n_estimators',
+                                                          [int(x) for x in np.linspace(
+                                                              start=200, stop=2000, num=10)]),
+                                'max_depth': hp.choice('max_depth',
+                                                       [int(x) for x in np.linspace(10, 110, num=11)]),
+                                'max_features': hp.choice('max_features', [i for i in range(1, 6, 2)]),
+                                'min_samples_split': hp.choice('min_samples_split',
+                                                               [i / 10.0 for i in range(1, 5)]),
+                                'min_samples_leaf': hp.choice('min_samples_leaf', [1, 2, 4]),
+                                'bootstrap': hp.choice('bootstrap', [True, False])}, })}
 
 transformers = {'KBins': KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='uniform'),
-                'PCA': PCA(n_components=7),  # adjust this dynamically and get name of columns
+                'PCA': PCA(n_components=7),  # adjust this dynamically
                 'Truncated': TruncatedSVD(n_components=3),
                 'PowerTransformer': PowerTransformer(),
                 'Quantile': QuantileTransformer(n_quantiles=100, output_distribution='normal')}
