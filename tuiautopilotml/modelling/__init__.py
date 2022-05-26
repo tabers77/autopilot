@@ -1,2 +1,2 @@
 
-__all__ = ['generals.py', 'neural_nets']
+__all__ = ['generals', 'neural_nets']
