@@ -1,4 +1,3 @@
-
 """******** EXPLORATORY DATA ANALYSIS ********"""
 
 import pandas as pd
@@ -35,10 +34,10 @@ def initial_eda_wrapper(df: pd.DataFrame, target_label=None, summary_report=True
     Returns:
 
     """
-    print('Checking imbalance degree...')
+    print('1: Checking imbalance degree...')
     imb.check_imbalance_degree(df, target_label)
 
-    print('Generating initial graphs...')
+    print('2: Generating initial graphs...')
     get_initial_graphs(df, target=target_label, save_figures=save_figures)
 
     if summary_report:
@@ -46,5 +45,3 @@ def initial_eda_wrapper(df: pd.DataFrame, target_label=None, summary_report=True
 
     if return_outliers:
         outliers.get_outliers(df=df, show_graph=True)
-
-

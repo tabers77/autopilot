@@ -2,14 +2,12 @@ import os
 import pandas as pd
 
 # DATABASES
-from google.cloud import bigquery
+#from google.cloud import bigquery
 import snowflake.connector
 from sqlalchemy import create_engine
 from snowflake.sqlalchemy import URL
 from tuiconns import DbManager
 from tuiautopilotml.decorators import time_performance_decor, gc_collect_decor
-
-# from tuiautopilotml.base_helpers import time_performance_decor, gc_collect_decor
 
 
 @time_performance_decor

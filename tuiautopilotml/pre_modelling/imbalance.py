@@ -49,7 +49,7 @@ def check_imbalance_degree(df: pd.DataFrame, target_label: str):
     """
 
     if df[target_label].nunique() >= 20:
-        print('It looks like your input data contains too many categories')
+        print('It looks like your target label contains too many categories or is a regression dataset')
     else:
         total_count_pct = dict(df.groupby(target_label).size() / len(df))
         moderate = {}
