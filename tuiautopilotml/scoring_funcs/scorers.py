@@ -8,8 +8,8 @@ from sklearn.model_selection import TimeSeriesSplit
 import tuiautopilotml.base_helpers as bh
 import tuiautopilotml.scoring_funcs.evaluation_metrics
 from tuiautopilotml import constants
-from tuiautopilotml import dicts as dicts
-from tuiautopilotml.dicts import models, scoring_metrics
+from tuiautopilotml import configs as dicts
+from tuiautopilotml.configs import models, scoring_metrics
 from tuiautopilotml.pre_modelling import handle_nulls
 from tuiautopilotml.scoring_funcs import cross_validation as cv
 from tuiautopilotml.scoring_funcs import datasets as d

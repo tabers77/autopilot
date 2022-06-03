@@ -6,7 +6,7 @@ from sklearn.model_selection import RepeatedKFold
 import tensorflow as tf
 
 import tuiautopilotml.base_helpers as h
-from tuiautopilotml.dicts import scoring_metrics
+from tuiautopilotml.configs import scoring_metrics
 
 
 def y_train_handler(y_train, activation_f_type):
@@ -30,6 +30,7 @@ def cv_eval_mlp(df, target_label, activation_f_type='classif', optimizer='adam',
     cv_folds = RepeatedKFold(n_splits=n_folds, n_repeats=n_repeats, random_state=random_state)
     early_stop = EarlyStopping(monitor=metric_to_monitor, mode=mode, verbose=verbose, patience=patience)
     model = None
+    score = None
     for train_ix, test_ix in cv_folds.split(x):
         x_train, x_test = x[train_ix], x[test_ix]
         y_train, y_test = y[train_ix], y[test_ix]

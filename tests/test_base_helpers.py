@@ -485,7 +485,7 @@ class BaselineScoreCVTestCase(utils.PandasTestCase):
             'df': df,
             'target_label': 'c',
             'evaluation_metric': ev.EvalMetrics.ACCURACY,
-            'model': XGBClassifier(use_label_encoder=False, random_state=0),  # Do we really need dicts.py ?
+            'model': XGBClassifier(use_label_encoder=False, random_state=0),  # Do we really need configs.py ?
             'run_id_number': 1,
             'policy': cv.SplitPolicy(policy_type='k_fold', n_splits=3, n_repeats=10, shuffle=True, random_state=0)
         }

@@ -13,7 +13,7 @@ from sklearn.metrics import confusion_matrix, classification_report, cohen_kappa
 import tuiautopilotml.base_helpers
 import tuiautopilotml.pre_modelling
 
-from tuiautopilotml import dicts as dicts, base_helpers as hf
+from tuiautopilotml import configs as dicts, base_helpers as hf
 from tuiautopilotml.pre_modelling import encoders as enc
 from tuiautopilotml.scoring_funcs import (cross_validation as cv,
                                           datasets as d,

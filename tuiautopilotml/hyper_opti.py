@@ -8,7 +8,7 @@ from sklearn import model_selection as ms
 
 import tuiautopilotml.scoring_funcs.evaluation_metrics
 from tuiautopilotml import constants
-from tuiautopilotml.dicts import models, hyper_params
+from tuiautopilotml.configs import models, hyper_params
 from tuiautopilotml.scoring_funcs import cross_validation as cv
 from tuiautopilotml.scoring_funcs.datasets import Dataset
 import tuiautopilotml.base_helpers as h

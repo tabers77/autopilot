@@ -11,7 +11,7 @@ import shap
 
 import tuiautopilotml.constants
 from tuiautopilotml.scoring_funcs import datasets as d
-from tuiautopilotml.dicts import models
+from tuiautopilotml.configs import models
 import tuiautopilotml.base_helpers as h
 import tuiautopilotml.visualization as v
 from tuiautopilotml.scoring_funcs import evaluation_metrics as em

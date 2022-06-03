@@ -28,7 +28,7 @@ from sklearn.preprocessing import StandardScaler
 from tuiautopilotml import constants
 from tuiautopilotml.scoring_funcs import datasets as d, scorers as scorers, cross_validation as cv
 from tuiautopilotml.scoring_funcs import evaluation_metrics as em
-import tuiautopilotml.dicts as dicts
+import tuiautopilotml.configs as configs
 from tuiautopilotml import mlflow_uploader as mf
 from tuiautopilotml.pre_modelling import encoders as enc
 
@@ -225,7 +225,7 @@ def df_sanity_check(df: pd.DataFrame):
 """******** GET SPLITS ******** """
 
 
-def get_x_y_from_df(df: pd.DataFrame, target_label: str, scaled_df=False, scaler=dicts.scalers['Standard']):
+def get_x_y_from_df(df: pd.DataFrame, target_label: str, scaled_df=False, scaler=configs.scalers['Standard']):
     """ Given a dataframe containing both input features and target labels,
     return the input features and target label column as separate dataframes. Optionally performs scaling.
 
@@ -294,10 +294,10 @@ def get_splits_wrapper(df: pd.DataFrame, target_label: str, train_split=False, s
 
 def scale_x(df, target_label, scaler_name, use_transformers=False, transformer_name=None):
     x, y = get_x_y_from_df(df, target_label)
-    scaler = dicts.scalers[scaler_name]
+    scaler = configs.scalers[scaler_name]
 
     if use_transformers:
-        transformer = dicts.transformers[transformer_name]
+        transformer = configs.transformers[transformer_name]
         transformer.fit(x)
         transformed_x = transformer.transform(x)
         current_x = scaler.fit_transform(transformed_x)
@@ -576,7 +576,7 @@ def get_baseline_score(df: pd.DataFrame, target_label: str, classification: bool
     """Get a baseline score """
 
     print('Computing baseline score')
-    return baseline_score_cv(df, target_label, dicts.models['clf' if classification else 'reg'][model_name],
+    return baseline_score_cv(df, target_label, configs.models['clf' if classification else 'reg'][model_name],
                              evaluation_metric=em.EvalMetrics.from_str(evaluation_metric), run_id_number=run_id_number,
                              policy=cv.SplitPolicy(random_state=constants.DEFAULT_SEED, n_splits=n_folds,
                                                    policy_type=k_fold_method,

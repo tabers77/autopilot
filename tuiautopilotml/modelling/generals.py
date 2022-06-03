@@ -4,7 +4,7 @@ from sklearn.linear_model import LogisticRegression, LinearRegression
 
 import tuiautopilotml.base_helpers as h
 from tuiautopilotml import constants
-from tuiautopilotml.dicts import scalers, transformers, models
+from tuiautopilotml.configs import scalers, transformers, models
 import tuiautopilotml.hyper_opti as hyper_p
 
 from tuiautopilotml.scoring_funcs import cross_validation as cv

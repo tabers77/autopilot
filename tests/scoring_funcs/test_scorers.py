@@ -14,7 +14,7 @@ from tuiautopilotml.scoring_funcs import (cross_validation as cv,
                                           datasets,
                                           scorers)
 from tuiautopilotml.scoring_funcs import datasets as d
-from tuiautopilotml.dicts import models
+from tuiautopilotml.configs import models
 
 
 class GetScaledXScoreTestCase(unittest.TestCase):

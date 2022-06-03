@@ -8,7 +8,7 @@ from unittest.mock import call, patch
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 import tuiautopilotml.pre_modelling.feature_importance as fi
-from tuiautopilotml.dicts import models
+from tuiautopilotml.configs import models
 from tuiautopilotml.scoring_funcs import evaluation_metrics as em
 import tuiautopilotml.scoring_funcs.scorers as sc
 
