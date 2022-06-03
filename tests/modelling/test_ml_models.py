@@ -7,7 +7,7 @@ from xgboost import XGBClassifier
 from sklearn.linear_model import LogisticRegression
 
 
-from tuiautopilotml.modelling import generals
+from tuiautopilotml.modelling import ml_models
 from tuiautopilotml import visualization as vs
 
 from tests import utils
@@ -21,7 +21,7 @@ class EvaluateModelWrapperTestCase(utils.PandasTestCase):
 
     @patch.object(vs, 'get_graph')  # Suppress graph generation as it pops up a window the user needs to respond to.
     def test_calls_cross_validation__one_model(self, mock_get_graph: mock.MagicMock):
-        scores, best_model = generals.evaluate_models_wrapper(self.df, 'c', ['XGB'])
+        scores, best_model = ml_models.evaluate_models_wrapper(self.df, 'c', ['XGB'])
 
         self.assertTrue('XGB' in scores)
         mean, std = scores['XGB']
@@ -42,7 +42,7 @@ class EvaluateModelWrapperTestCase(utils.PandasTestCase):
 
     @patch.object(vs, 'get_graph')
     def test_calls_cross_validation__two_models(self, _):
-        scores, best_model = generals.evaluate_models_wrapper(self.df, 'c', ['XGB', 'LR'])
+        scores, best_model = ml_models.evaluate_models_wrapper(self.df, 'c', ['XGB', 'LR'])
 
         self.assertTrue('XGB' in scores)
         mean, std = scores['XGB']

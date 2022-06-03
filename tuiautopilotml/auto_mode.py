@@ -5,7 +5,7 @@ import tuiautopilotml.pre_modelling.imbalance
 import tuiautopilotml.pre_modelling.outliers as outliers
 import tuiautopilotml.pre_modelling.encoders as enc
 import tuiautopilotml.hyper_opti as hyper_p
-import tuiautopilotml.modelling.generals as modelling
+import tuiautopilotml.modelling.ml_models as ml_models
 import tuiautopilotml.modelling.neural_nets as neural_nets
 import tuiautopilotml.pre_modelling.feature_importance as fi
 import tuiautopilotml.preprocessing as dv
@@ -119,11 +119,11 @@ default_steps = {'dataframe_transformation': (dv.dataframe_transformation, initi
 modelling_steps = {'handle_outliers': (outliers.handle_outliers, mixed_handler),
                    'evaluate_oversamplers': (tuiautopilotml.pre_modelling.imbalance.evaluate_oversamplers,
                                              mixed_handler),
-                   'evaluate_models': (modelling.evaluate_models_wrapper, scoring_handler)
+                   'evaluate_models': (ml_models.evaluate_models_wrapper, scoring_handler)
                    }
 
 post_modelling_steps = {'feature_selection': (fi.get_reduced_features_cv_scores, mixed_handler),
-                        'transformation_methods': (modelling.eval_model_scaler_wrapper, mixed_handler),
+                        'transformation_methods': (ml_models.eval_model_scaler_wrapper, mixed_handler),
                         'hyper_param_opt': (hyper_p.hyperopt_parameter_tuning_cv, hyper_p_handler),
                         'optuna': (hyper_p.optuna_hyperopt, hyper_p_handler),
                         'grid_search': (hyper_p.grid_search_hyperopt, hyper_p_handler)}
@@ -166,7 +166,6 @@ def execute_steps(steps, config_dict):
     for i, (step_name, (func, handler)) in enumerate(steps.items()):
         current_params = bh.get_params_from_config(func=func, config_dict=config_dict)
         bh.printy(text='JOB', text_type='custom', p1=i, p2=step_name)
-        #print(f'*********************** JOB:{i}: {step_name} ***********************')
 
         try:
             handler(step_name, func, current_params, config_dict)

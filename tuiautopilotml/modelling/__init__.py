@@ -1,2 +1,2 @@
 
-__all__ = ['generals', 'neural_nets']
+__all__ = ['ml_models', 'neural_nets']
