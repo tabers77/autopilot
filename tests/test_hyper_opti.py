@@ -11,7 +11,7 @@ from tests.utils import generate_dataset
 from tuiautopilotml import hyper_opti as ho
 
 
-class HyperOptManualTestCase(unittest.TestCase):
+class HyperOptParameterTuningCvTestCase(unittest.TestCase):
 
     # This is an integration test - a unit test would require major alteration of the underlying code.
     def test_actual_run(self):
