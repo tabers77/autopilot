@@ -25,12 +25,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 # LOCAL LIBRARIES
-from tuiautopilotml import constants
-from tuiautopilotml.scoring_funcs import datasets as d, scorers as scorers, cross_validation as cv
-from tuiautopilotml.scoring_funcs import evaluation_metrics as em
-import tuiautopilotml.configs as configs
-from tuiautopilotml import mlflow_uploader as mf
-from tuiautopilotml.pre_modelling import encoders as enc
+from taberspilotml import constants
+from taberspilotml.scoring_funcs import datasets as d, scorers as scorers, cross_validation as cv
+from taberspilotml.scoring_funcs import evaluation_metrics as em
+import taberspilotml.configs as configs
+from taberspilotml import mlflow_uploader as mf
+from taberspilotml.pre_modelling import encoders as enc
 
 logging.basicConfig(level=logging.INFO)
 

@@ -4,12 +4,12 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from tuiautopilotml import base_helpers as bh
-from tuiautopilotml.scoring_funcs import (cross_validation as cv,
-                                          datasets as d,
-                                          evaluation_metrics as ev,
-                                          scorers)
-from tuiautopilotml.pre_modelling import outliers
+from taberspilotml import base_helpers as bh
+from taberspilotml.scoring_funcs import (cross_validation as cv,
+                                         datasets as d,
+                                         evaluation_metrics as ev,
+                                         scorers)
+from taberspilotml.pre_modelling import outliers
 
 
 class HandleOutliersTestCase(unittest.TestCase):

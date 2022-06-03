@@ -14,13 +14,13 @@ from sklearn import preprocessing as prep
 
 from xgboost import XGBClassifier
 
-from tuiautopilotml import base_helpers as bh
-from tuiautopilotml.scoring_funcs import (cross_validation as cv,
-                                          datasets as d,
-                                          evaluation_metrics as ev,
-                                          scorers)
+from taberspilotml import base_helpers as bh
+from taberspilotml.scoring_funcs import (cross_validation as cv,
+                                         datasets as d,
+                                         evaluation_metrics as ev,
+                                         scorers)
 
-from tuiautopilotml import mlflow_uploader as mf
+from taberspilotml import mlflow_uploader as mf
 
 from tests import utils
 

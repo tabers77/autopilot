@@ -6,13 +6,13 @@ from hyperopt import STATUS_OK, Trials, fmin, tpe
 from sklearn import clone
 from sklearn import model_selection as ms
 
-import tuiautopilotml.scoring_funcs.evaluation_metrics
-from tuiautopilotml import constants
-from tuiautopilotml.configs import models, hyper_params
-from tuiautopilotml.scoring_funcs import cross_validation as cv
-from tuiautopilotml.scoring_funcs.datasets import Dataset
-import tuiautopilotml.base_helpers as h
-import tuiautopilotml.scoring_funcs.scorers as scorers
+import taberspilotml.scoring_funcs.evaluation_metrics
+from taberspilotml import constants
+from taberspilotml.configs import models, hyper_params
+from taberspilotml.scoring_funcs import cross_validation as cv
+from taberspilotml.scoring_funcs.datasets import Dataset
+import taberspilotml.base_helpers as h
+import taberspilotml.scoring_funcs.scorers as scorers
 
 DEFAULT_SEED = 0
 
@@ -75,7 +75,7 @@ def hyperopt_parameter_tuning_cv(df: pd.DataFrame, target_label: str, model_name
         raise ValueError('This version does not support STACKED model yet')
 
     # These 2 could be passed in when the function is called, simplifying the logic here.
-    eval_metrics = [tuiautopilotml.scoring_funcs.evaluation_metrics.EvalMetrics.from_str(evaluation_metric)]
+    eval_metrics = [taberspilotml.scoring_funcs.evaluation_metrics.EvalMetrics.from_str(evaluation_metric)]
     policy = cv.SplitPolicy(policy_type=k_fold_method, n_splits=n_folds, n_repeats=n_repeats, shuffle=True,
                             random_state=constants.DEFAULT_SEED)
 

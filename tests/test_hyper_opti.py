@@ -8,7 +8,7 @@ import unittest
 from xgboost import XGBClassifier
 
 from tests.utils import generate_dataset
-from tuiautopilotml import hyper_opti as ho
+from taberspilotml import hyper_opti as ho
 
 
 class HyperOptParameterTuningCvTestCase(unittest.TestCase):

@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 from sklearn import preprocessing as prep
-from tuiautopilotml.scoring_funcs import datasets as d
+from taberspilotml.scoring_funcs import datasets as d
 
 
 class DatasetTestCase(unittest.TestCase):

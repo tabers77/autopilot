@@ -6,9 +6,9 @@ from typing import Dict, Iterable, Sequence, Optional
 import numpy as np
 from sklearn import model_selection as ms
 
-from tuiautopilotml import constants
-from tuiautopilotml.scoring_funcs.datasets import Dataset
-from tuiautopilotml.scoring_funcs.evaluation_metrics import EvalMetrics, metrics_to_scoringdict
+from taberspilotml import constants
+from taberspilotml.scoring_funcs.datasets import Dataset
+from taberspilotml.scoring_funcs.evaluation_metrics import EvalMetrics, metrics_to_scoringdict
 
 
 @dataclass

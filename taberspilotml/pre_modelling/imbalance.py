@@ -10,14 +10,14 @@ from scipy.stats import ttest_ind
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, classification_report, cohen_kappa_score
 
-import tuiautopilotml.base_helpers
-import tuiautopilotml.pre_modelling
+import taberspilotml.base_helpers
+import taberspilotml.pre_modelling
 
-from tuiautopilotml import configs as dicts, base_helpers as hf
-from tuiautopilotml.pre_modelling import encoders as enc
-from tuiautopilotml.scoring_funcs import (cross_validation as cv,
-                                          datasets as d,
-                                          scorers as scorers)
+from taberspilotml import configs as dicts, base_helpers as hf
+from taberspilotml.pre_modelling import encoders as enc
+from taberspilotml.scoring_funcs import (cross_validation as cv,
+                                         datasets as d,
+                                         scorers as scorers)
 
 DEFAULT_PALETTE = 'mako'
 
@@ -258,7 +258,7 @@ def evaluate_oversamplers(df: pd.DataFrame, target_label: str, classification=Tr
     """
 
     hf.printy('Checking imbalance degree', text_type='subtitle')
-    tuiautopilotml.pre_modelling.imbalance.check_imbalance_degree(df, target_label)
+    taberspilotml.pre_modelling.imbalance.check_imbalance_degree(df, target_label)
     entropy_score = compute_entropy(df[target_label])
 
     if entropy_score <= 0.90:

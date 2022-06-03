@@ -4,7 +4,7 @@ import unittest
 
 import pandas as pd
 
-from tuiautopilotml.pre_modelling import encoders as enc
+from taberspilotml.pre_modelling import encoders as enc
 
 
 class GetEncodedWrapperTestCase(unittest.TestCase):

@@ -4,9 +4,9 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 
-from tuiautopilotml import base_helpers as helpers
-from tuiautopilotml.pre_modelling import encoders as enc
-from tuiautopilotml.scoring_funcs import scorers as scorers
+from taberspilotml import base_helpers as helpers
+from taberspilotml.pre_modelling import encoders as enc
+from taberspilotml.scoring_funcs import scorers as scorers
 
 
 def eval_imputation_method_wrapper(df, target_label, test_size=0.2, model=RandomForestClassifier(),

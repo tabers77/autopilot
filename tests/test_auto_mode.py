@@ -5,13 +5,13 @@ from unittest.mock import patch
 import pandas as pd
 from xgboost import XGBClassifier
 
-import tuiautopilotml
-from tuiautopilotml import auto_mode as auto
-from tuiautopilotml import base_helpers as bh
-import tuiautopilotml.pre_modelling.encoders as enc
-from tuiautopilotml import preprocessing as dv
-from tuiautopilotml.scoring_funcs import cross_validation as cv, evaluation_metrics as ev
-from tuiautopilotml import mlflow_uploader as mf
+import taberspilotml
+from taberspilotml import auto_mode as auto
+from taberspilotml import base_helpers as bh
+import taberspilotml.pre_modelling.encoders as enc
+from taberspilotml import preprocessing as dv
+from taberspilotml.scoring_funcs import cross_validation as cv, evaluation_metrics as ev
+from taberspilotml import mlflow_uploader as mf
 
 from tests import utils
 
@@ -19,7 +19,7 @@ from tests import utils
 class AutopilotModeTestCase(unittest.TestCase):
     test_default_steps = {
         'dataframe_transformation': (dv.dataframe_transformation, auto.initial_checkpoint_handler),
-        'handle_missing_values': (tuiautopilotml.pre_modelling.handle_nulls.eval_imputation_method_wrapper,
+        'handle_missing_values': (taberspilotml.pre_modelling.handle_nulls.eval_imputation_method_wrapper,
                                   auto.initial_checkpoint_handler),
         'encoding': (enc.get_encoded_wrapper, auto.initial_checkpoint_handler),
         'baseline_score': ((lambda classification, evaluation_metric, model_name: 0.5), auto.support_handler)
@@ -85,7 +85,7 @@ class AutopilotModeTestCase(unittest.TestCase):
     @patch.dict(auto.default_steps, values=test_default_steps)
     @patch.dict(auto.all_pipeline_steps, values={'evaluate_models': (lambda fake_arg: ((0.4, 0.2), 'model'),
                                                                      auto.scoring_handler)})
-    @patch.object(tuiautopilotml.base_helpers, 'update_upload_config')
+    @patch.object(taberspilotml.base_helpers, 'update_upload_config')
     def test_modelling_step(self, mock_update_upload_config: mock.MagicMock):
         config = dict(self.config)
         config['fake_arg'] = 2
@@ -103,7 +103,7 @@ class AutopilotModeTestCase(unittest.TestCase):
     @patch.dict(auto.default_steps, values=test_default_steps)
     @patch.dict(auto.all_pipeline_steps, values={'grid_search': (lambda fake_arg: ((0.4, 0.2), 'params', 'model'),
                                                                  auto.hyper_p_handler)})
-    @patch.object(tuiautopilotml.base_helpers, 'update_upload_config')
+    @patch.object(taberspilotml.base_helpers, 'update_upload_config')
     def test_hyperparam_step(self, mock_update_upload_config: mock.MagicMock):
         config = dict(self.config)
         config['fake_arg'] = 2
@@ -122,7 +122,7 @@ class AutopilotModeTestCase(unittest.TestCase):
     @patch.dict(auto.default_steps, values=test_default_steps)
     @patch.dict(auto.all_pipeline_steps, values={'handle_outliers': (lambda fake_arg: ((0.4, 0.2), 'result_df'),
                                                                      auto.mixed_handler)})
-    @patch.object(tuiautopilotml.base_helpers, 'update_upload_config')
+    @patch.object(taberspilotml.base_helpers, 'update_upload_config')
     def test_mixed_step(self, mock_update_upload_config: mock.MagicMock):
         config = dict(self.config)
         config['fake_arg'] = 2

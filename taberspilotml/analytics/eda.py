@@ -2,13 +2,13 @@
 
 import pandas as pd
 
-import tuiautopilotml.pre_modelling.imbalance as imb
-import tuiautopilotml.pre_modelling.outliers as outliers
-from tuiautopilotml.decorators import time_performance_decor, gc_collect_decor
+import taberspilotml.pre_modelling.imbalance as imb
+import taberspilotml.pre_modelling.outliers as outliers
+from taberspilotml.decorators import time_performance_decor, gc_collect_decor
 
 # EDA PACKAGES
 import sweetviz as sv
-from tuiautopilotml.visualization import get_initial_graphs
+from taberspilotml.visualization import get_initial_graphs
 
 
 def get_summary_report(df: pd.DataFrame):

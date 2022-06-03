@@ -4,7 +4,7 @@ from datetime import date
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-import tuiautopilotml.base_helpers as h
+import taberspilotml.base_helpers as h
 
 DEFAULT_COLOR = 'firebrick'
 DEFAULT_PALETTE = 'mako'

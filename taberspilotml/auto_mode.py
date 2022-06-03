@@ -1,16 +1,16 @@
 """******** AUTOPILOT MODE FUNCTIONS ******** """
 from typing import Callable
 
-import tuiautopilotml.pre_modelling.imbalance
-import tuiautopilotml.pre_modelling.outliers as outliers
-import tuiautopilotml.pre_modelling.encoders as enc
-import tuiautopilotml.hyper_opti as hyper_p
-import tuiautopilotml.modelling.ml_models as ml_models
-import tuiautopilotml.modelling.neural_nets as neural_nets
-import tuiautopilotml.pre_modelling.feature_importance as fi
-import tuiautopilotml.preprocessing as dv
-from tuiautopilotml import base_helpers
-import tuiautopilotml.base_helpers as bh
+import taberspilotml.pre_modelling.imbalance
+import taberspilotml.pre_modelling.outliers as outliers
+import taberspilotml.pre_modelling.encoders as enc
+import taberspilotml.hyper_opti as hyper_p
+import taberspilotml.modelling.ml_models as ml_models
+import taberspilotml.modelling.neural_nets as neural_nets
+import taberspilotml.pre_modelling.feature_importance as fi
+import taberspilotml.preprocessing as dv
+from taberspilotml import base_helpers
+import taberspilotml.base_helpers as bh
 
 DEFAULT_SEED = 0
 
@@ -109,7 +109,7 @@ def mixed_handler(step_name: str, function: Callable, parameters: dict, config_d
 
 # Define all pipeline steps
 default_steps = {'dataframe_transformation': (dv.dataframe_transformation, initial_checkpoint_handler),
-                 'handle_missing_values': (tuiautopilotml.pre_modelling.handle_nulls.eval_imputation_method_wrapper,
+                 'handle_missing_values': (taberspilotml.pre_modelling.handle_nulls.eval_imputation_method_wrapper,
                                            initial_checkpoint_handler),
                  'encoding': (enc.get_encoded_wrapper, initial_checkpoint_handler),
                  'baseline_score': (bh.get_baseline_score, support_handler),
@@ -117,7 +117,7 @@ default_steps = {'dataframe_transformation': (dv.dataframe_transformation, initi
                  }
 
 modelling_steps = {'handle_outliers': (outliers.handle_outliers, mixed_handler),
-                   'evaluate_oversamplers': (tuiautopilotml.pre_modelling.imbalance.evaluate_oversamplers,
+                   'evaluate_oversamplers': (taberspilotml.pre_modelling.imbalance.evaluate_oversamplers,
                                              mixed_handler),
                    'evaluate_models': (ml_models.evaluate_models_wrapper, scoring_handler)
                    }

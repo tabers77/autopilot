@@ -5,16 +5,16 @@ import pandas as pd
 from scipy.stats import norm
 from sklearn.ensemble import RandomForestClassifier, IsolationForest
 
-from tuiautopilotml import base_helpers as h
-from tuiautopilotml import constants
-from tuiautopilotml.configs import scoring_metrics
-import tuiautopilotml.visualization as vs
-import tuiautopilotml.configs as dicts
-from tuiautopilotml.scoring_funcs import cross_validation as cv
-from tuiautopilotml.scoring_funcs.datasets import Dataset
-from tuiautopilotml.scoring_funcs import evaluation_metrics as ev
-from tuiautopilotml.scoring_funcs import scorers as scorers
-from tuiautopilotml.scoring_funcs.scorers import get_custom_cv_score
+from taberspilotml import base_helpers as h
+from taberspilotml import constants
+from taberspilotml.configs import scoring_metrics
+import taberspilotml.visualization as vs
+import taberspilotml.configs as dicts
+from taberspilotml.scoring_funcs import cross_validation as cv
+from taberspilotml.scoring_funcs.datasets import Dataset
+from taberspilotml.scoring_funcs import evaluation_metrics as ev
+from taberspilotml.scoring_funcs import scorers as scorers
+from taberspilotml.scoring_funcs.scorers import get_custom_cv_score
 
 
 def handle_outliers(df, target_label, tot_outlier_pct=4, classification=True,

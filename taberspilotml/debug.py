@@ -6,8 +6,8 @@ import pandas as pd
 # -----------------
 # package functions
 # -----------------
-from tuiautopilotml.analytics.eda import initial_eda_wrapper
-from tuiautopilotml.preprocessing import dataframe_transformation
+from taberspilotml.analytics.eda import initial_eda_wrapper
+from taberspilotml.preprocessing import dataframe_transformation
 
 n_samples, n_features = 1000, 20
 rng = np.random.RandomState(0)

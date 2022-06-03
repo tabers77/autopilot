@@ -9,12 +9,12 @@ import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
 
-from tuiautopilotml import base_helpers as bh
-from tuiautopilotml.pre_modelling import imbalance
-from tuiautopilotml.scoring_funcs import (cross_validation as cv,
-                                          datasets as d,
-                                          evaluation_metrics as ev,
-                                          scorers)
+from taberspilotml import base_helpers as bh
+from taberspilotml.pre_modelling import imbalance
+from taberspilotml.scoring_funcs import (cross_validation as cv,
+                                         datasets as d,
+                                         evaluation_metrics as ev,
+                                         scorers)
 
 
 from tests import utils

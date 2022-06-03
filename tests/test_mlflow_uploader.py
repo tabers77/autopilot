@@ -7,7 +7,7 @@ import pandas as pd
 from keras.models import Functional, Sequential
 import mlflow
 
-from tuiautopilotml import mlflow_uploader as mfu
+from taberspilotml import mlflow_uploader as mfu
 
 
 class UploadArtifactsTestCase(unittest.TestCase):

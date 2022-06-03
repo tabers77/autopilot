@@ -9,13 +9,13 @@ import shap
 # LOCAL LIBRARIES
 # -----------------
 
-import tuiautopilotml.constants
-from tuiautopilotml.scoring_funcs import datasets as d
-from tuiautopilotml.configs import models
-import tuiautopilotml.base_helpers as h
-import tuiautopilotml.visualization as v
-from tuiautopilotml.scoring_funcs import evaluation_metrics as em
-import tuiautopilotml.scoring_funcs.scorers as sc
+import taberspilotml.constants
+from taberspilotml.scoring_funcs import datasets as d
+from taberspilotml.configs import models
+import taberspilotml.base_helpers as h
+import taberspilotml.visualization as v
+from taberspilotml.scoring_funcs import evaluation_metrics as em
+import taberspilotml.scoring_funcs.scorers as sc
 
 
 def auto_feature_selection_from_estimator(df: pd.DataFrame, target_label: str, estimator) -> Sequence[str]:
@@ -99,7 +99,7 @@ class BestFeatures:
                                            columns=['importance']).sort_values('importance', ascending=False)
 
         v.get_graph(feature_importances, figsize=(8, 6), stage='Feature Engineering',
-                    color=tuiautopilotml.constants.DEFAULT_COLOR,
+                    color=taberspilotml.constants.DEFAULT_COLOR,
                     horizontal=True, style='default', fig_title=f'Feature importance', x_title='features',
                     y_title='score', sort_type='desc', save_figure=save_figure, file_name='feature_importance_figure')
 
@@ -119,7 +119,7 @@ class BestFeatures:
         estimator = LogisticRegression(C=c, penalty=penalty,
                                        # LBFGS does not support l1 penalty
                                        solver='liblinear' if penalty == 'l1' else 'lbfgs',
-                                       random_state=tuiautopilotml.constants.DEFAULT_SEED)
+                                       random_state=taberspilotml.constants.DEFAULT_SEED)
 
         return auto_feature_selection_from_estimator(self.df, self.target_label, estimator)
 

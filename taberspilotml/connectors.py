@@ -7,7 +7,7 @@ import snowflake.connector
 from sqlalchemy import create_engine
 from snowflake.sqlalchemy import URL
 from tuiconns import DbManager
-from tuiautopilotml.decorators import time_performance_decor, gc_collect_decor
+from taberspilotml.decorators import time_performance_decor, gc_collect_decor
 
 
 @time_performance_decor

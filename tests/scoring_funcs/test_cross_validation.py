@@ -7,9 +7,9 @@ from sklearn import model_selection as ms
 import sklearn.metrics
 from sklearn.metrics import f1_score, precision_score, recall_score, make_scorer
 
-from tuiautopilotml.scoring_funcs import (cross_validation as cv,
-                                          datasets as d,
-                                          evaluation_metrics as ev)
+from taberspilotml.scoring_funcs import (cross_validation as cv,
+                                         datasets as d,
+                                         evaluation_metrics as ev)
 
 
 class MetricsToScoringDictTestCase(unittest.TestCase):

@@ -1,5 +1,5 @@
 """ Various constants and defaults used in the library. """
-from tuiautopilotml.scoring_funcs import evaluation_metrics as em
+from taberspilotml.scoring_funcs import evaluation_metrics as em
 from hyperopt import hp
 
 models_list_default = ['KNN', 'NB', 'SVC', 'RF', 'XGB', 'ADA', 'MLP']

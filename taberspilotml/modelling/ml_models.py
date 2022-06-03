@@ -2,16 +2,16 @@ import pandas as pd
 from sklearn.ensemble import StackingClassifier, StackingRegressor
 from sklearn.linear_model import LogisticRegression, LinearRegression
 
-import tuiautopilotml.base_helpers as h
-from tuiautopilotml import constants
-from tuiautopilotml.configs import scalers, transformers, models
-import tuiautopilotml.hyper_opti as hyper_p
+import taberspilotml.base_helpers as h
+from taberspilotml import constants
+from taberspilotml.configs import scalers, transformers, models
+import taberspilotml.hyper_opti as hyper_p
 
-from tuiautopilotml.scoring_funcs import cross_validation as cv
-from tuiautopilotml.scoring_funcs import evaluation_metrics as em
-from tuiautopilotml.scoring_funcs import datasets
-import tuiautopilotml.scoring_funcs.scorers as scorers
-import tuiautopilotml.visualization as vs
+from taberspilotml.scoring_funcs import cross_validation as cv
+from taberspilotml.scoring_funcs import evaluation_metrics as em
+from taberspilotml.scoring_funcs import datasets
+import taberspilotml.scoring_funcs.scorers as scorers
+import taberspilotml.visualization as vs
 
 
 def eval_model_scaler_wrapper(df, target_label, model_name, k_fold_method='k_fold', n_folds=5,

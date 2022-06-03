@@ -23,7 +23,7 @@ requirements = [
 
 
 setuptools.setup(
-    name="tuiautopilotml",
+    name="taberspilotml",
     version="0.0.1",
     author="",
     author_email="",

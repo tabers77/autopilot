@@ -5,15 +5,15 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import TimeSeriesSplit
 
-import tuiautopilotml.base_helpers as bh
-import tuiautopilotml.scoring_funcs.evaluation_metrics
-from tuiautopilotml import constants
-from tuiautopilotml import configs as dicts
-from tuiautopilotml.configs import models, scoring_metrics
-from tuiautopilotml.pre_modelling import handle_nulls
-from tuiautopilotml.scoring_funcs import cross_validation as cv
-from tuiautopilotml.scoring_funcs import datasets as d
-from tuiautopilotml.decorators import time_performance_decor, gc_collect_decor
+import taberspilotml.base_helpers as bh
+import taberspilotml.scoring_funcs.evaluation_metrics
+from taberspilotml import constants
+from taberspilotml import configs as dicts
+from taberspilotml.configs import models, scoring_metrics
+from taberspilotml.pre_modelling import handle_nulls
+from taberspilotml.scoring_funcs import cross_validation as cv
+from taberspilotml.scoring_funcs import datasets as d
+from taberspilotml.decorators import time_performance_decor, gc_collect_decor
 
 
 @time_performance_decor
@@ -21,8 +21,8 @@ from tuiautopilotml.decorators import time_performance_decor, gc_collect_decor
 def get_cross_validation_score(dataset: d.Dataset, model=models['clf']['RF'],
                                split_policy=cv.SplitPolicy.kfold_default(),
                                averaging_policy=None,
-                               evaluation_metrics: Sequence[tuiautopilotml.scoring_funcs.evaluation_metrics.EvalMetrics] = (
-                               tuiautopilotml.scoring_funcs.evaluation_metrics.EvalMetrics.ACCURACY,),
+                               evaluation_metrics: Sequence[taberspilotml.scoring_funcs.evaluation_metrics.EvalMetrics] = (
+                                       taberspilotml.scoring_funcs.evaluation_metrics.EvalMetrics.ACCURACY,),
                                n_jobs=-1, verbose=0):
     """
 
@@ -178,6 +178,6 @@ def get_scaled_x_score(df, target_label, model_name='RF', scaler_name='MinMax', 
 
     scores = get_cross_validation_score(dataset=dataset, model=model, split_policy=policy,
                                         evaluation_metrics=[
-                                            tuiautopilotml.scoring_funcs.evaluation_metrics.EvalMetrics.from_str(evaluation_metric)])
+                                            taberspilotml.scoring_funcs.evaluation_metrics.EvalMetrics.from_str(evaluation_metric)])
 
     return scores[0], scores[1]

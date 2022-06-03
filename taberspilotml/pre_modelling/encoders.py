@@ -2,7 +2,7 @@
 
 from sklearn.preprocessing import LabelEncoder
 import pandas as pd
-import tuiautopilotml.base_helpers as bh
+import taberspilotml.base_helpers as bh
 
 
 def map_categoricals_tointegers(df, return_mapping=False, exclude_from_encoding=None):

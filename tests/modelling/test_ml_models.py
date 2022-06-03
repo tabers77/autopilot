@@ -7,8 +7,8 @@ from xgboost import XGBClassifier
 from sklearn.linear_model import LogisticRegression
 
 
-from tuiautopilotml.modelling import ml_models
-from tuiautopilotml import visualization as vs
+from taberspilotml.modelling import ml_models
+from taberspilotml import visualization as vs
 
 from tests import utils
 

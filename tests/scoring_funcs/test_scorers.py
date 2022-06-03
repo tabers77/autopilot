@@ -8,13 +8,13 @@ from sklearn import model_selection as ms
 from sklearn.ensemble import RandomForestRegressor
 
 from tests import utils
-from tuiautopilotml import base_helpers as bh
-from tuiautopilotml.scoring_funcs import (cross_validation as cv,
-                                          evaluation_metrics as ev,
-                                          datasets,
-                                          scorers)
-from tuiautopilotml.scoring_funcs import datasets as d
-from tuiautopilotml.configs import models
+from taberspilotml import base_helpers as bh
+from taberspilotml.scoring_funcs import (cross_validation as cv,
+                                         evaluation_metrics as ev,
+                                         datasets,
+                                         scorers)
+from taberspilotml.scoring_funcs import datasets as d
+from taberspilotml.configs import models
 
 
 class GetScaledXScoreTestCase(unittest.TestCase):
