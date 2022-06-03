@@ -37,7 +37,6 @@ class HyperOptManualTestCase(unittest.TestCase):
         del best_params['missing']
 
         expected_params = {
-            'enable_categorical': False,
             'gamma': 0.1,
             'n_estimators': 300,
             'max_depth': 3,
