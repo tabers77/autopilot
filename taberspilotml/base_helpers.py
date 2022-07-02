@@ -363,7 +363,7 @@ def model_training_estimator_wrapper(func, df: pd.DataFrame, split_pct_param=0.0
     if steps_inp == 'Y':
         results = {}
         print('Encoding and dropping missing values in order to test the function')
-        df = enc.get_encoded_wrapper(df=df)
+        df = enc.default_encoding(df=df)
         df.dropna(axis=0, inplace=True)
         for n_rows in final_list:
             if n_rows >= 700:

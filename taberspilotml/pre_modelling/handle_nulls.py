@@ -26,7 +26,7 @@ def eval_imputation_method_wrapper(df, target_label, test_size=0.2, model=Random
     """
     # Load initial functions to be used
     funcs_to_eval = {'get_imputed_x': get_imputed_x, 'drop_nulls': drop_nulls,
-                     'encoded_nulls_score': enc.get_encoded_wrapper}
+                     'encoded_nulls_score': enc.default_encoding}
 
     for col in df.columns:
 
@@ -65,7 +65,7 @@ def eval_imputation_method_wrapper(df, target_label, test_size=0.2, model=Random
 
         # Method 3
         encoded_nulls_scores, encoded_nulls_std = scorers.get_custom_cv_score(
-            df=enc.get_encoded_wrapper(df, encode_nulls=True),
+            df=enc.default_encoding(df, encode_nulls=True),
             target_label=target_label,
             classification=classification,
             evaluation_metric=evaluation_metric, model=model,
@@ -110,7 +110,7 @@ def get_imputed_x(df: pd.DataFrame, strategy: str):
     df = df.copy()
     imputer = SimpleImputer(strategy=strategy)
     df[cols_with_missing] = imputer.fit_transform(df[cols_with_missing])
-    encoded_df = enc.get_encoded_wrapper(df)
+    encoded_df = enc.default_encoding(df)
 
     return encoded_df
 
@@ -118,6 +118,6 @@ def get_imputed_x(df: pd.DataFrame, strategy: str):
 def drop_nulls(df: pd.DataFrame):
     df = df.copy()
     df.dropna(axis=0, inplace=True)
-    encoded_df = enc.get_encoded_wrapper(df)
+    encoded_df = enc.default_encoding(df)
 
     return encoded_df

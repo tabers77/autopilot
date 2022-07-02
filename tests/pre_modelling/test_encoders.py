@@ -11,12 +11,12 @@ class GetEncodedWrapperTestCase(unittest.TestCase):
 
     def test_raisesexception_withnulls(self):
         with self.assertRaises(ValueError) as ve:
-            enc.get_encoded_wrapper(pd.DataFrame(data=[(None,)], columns=['a']))
+            enc.default_encoding(pd.DataFrame(data=[(None,)], columns=['a']))
 
         self.assertEqual('There are missing values in your dataset', ve.exception.args[0])
 
     def test_encodenulls__none_nan(self):
-        encoded = enc.get_encoded_wrapper(
+        encoded = enc.default_encoding(
             pd.DataFrame(data=[(None, math.nan),
                                (1, 'a')], columns=['a', 'b']), encode_nulls=True)
 
@@ -25,7 +25,7 @@ class GetEncodedWrapperTestCase(unittest.TestCase):
                                                    columns=['encoded_nulls_a', 'encoded_nulls_b']), encoded)
 
     def test_encodenulls__nan_none(self):
-        encoded = enc.get_encoded_wrapper(
+        encoded = enc.default_encoding(
                 pd.DataFrame(data=[(math.nan, None),
                                    (1, 'a')], columns=['a', 'b']), encode_nulls=True)
 
@@ -38,7 +38,7 @@ class GetEncodedWrapperTestCase(unittest.TestCase):
                                 ('b', 'no'),
                                 ('a', 'no')], columns=['Cat1', 'Cat2'])
 
-        encoded = enc.get_encoded_wrapper(df)
+        encoded = enc.default_encoding(df)
         pd.testing.assert_frame_equal(pd.DataFrame(
             data=[(0, 1),
                   (1, 0),
@@ -50,7 +50,7 @@ class GetEncodedWrapperTestCase(unittest.TestCase):
                                 ('a', 'no'),
                                 ('c', 'maybe')], columns=['Cat1', 'Cat2'])
 
-        encoded = enc.get_encoded_wrapper(df)
+        encoded = enc.default_encoding(df)
         pd.testing.assert_frame_equal(pd.DataFrame(
             data=[(0, 2),
                   (1, 1),
@@ -61,7 +61,7 @@ class GetEncodedWrapperTestCase(unittest.TestCase):
         df = pd.DataFrame(data=[(0, dt.datetime(year=2021, day=5, month=10)),
                                 (1, dt.datetime(year=2021, day=5, month=11))], columns=['a', 'date'])
 
-        encoded = enc.get_encoded_wrapper(df)
+        encoded = enc.default_encoding(df)
         pd.testing.assert_frame_equal(pd.DataFrame(
             data=[(0, 5, 10, 2021, 1),
                   (1, 5, 11, 2021, 4)],

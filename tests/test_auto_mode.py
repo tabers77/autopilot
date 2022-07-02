@@ -21,7 +21,7 @@ class AutopilotModeTestCase(unittest.TestCase):
         'dataframe_transformation': (dv.dataframe_transformation, auto.initial_checkpoint_handler),
         'handle_missing_values': (taberspilotml.pre_modelling.handle_nulls.eval_imputation_method_wrapper,
                                   auto.initial_checkpoint_handler),
-        'encoding': (enc.get_encoded_wrapper, auto.initial_checkpoint_handler),
+        'encoding': (enc.default_encoding, auto.initial_checkpoint_handler),
         'baseline_score': ((lambda classification, evaluation_metric, model_name: 0.5), auto.support_handler)
     }
 
@@ -42,7 +42,7 @@ class AutopilotModeTestCase(unittest.TestCase):
         errors = (
             "dataframe_transformation() missing 1 required positional argument: 'df'",
             "eval_imputation_method_wrapper() missing 2 required positional arguments: 'df' and 'target_label'",
-            "get_encoded_wrapper() missing 1 required positional argument: 'df'",
+            "default_encoding() missing 1 required positional argument: 'df'",
             "get_baseline_score() missing 5 required positional arguments: 'df', 'target_label', "
             "'classification', 'evaluation_metric', and 'model_name'",
         )

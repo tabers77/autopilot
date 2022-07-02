@@ -397,7 +397,7 @@ class TrainVsTest:
         if target_label is not None:
             dataframe.drop(target_label, axis=1, inplace=True)
 
-        dataframe = enc.get_encoded_wrapper(dataframe)
+        dataframe = enc.default_encoding(dataframe)
 
         return dataframe
 

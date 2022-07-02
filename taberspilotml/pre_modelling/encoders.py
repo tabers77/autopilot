@@ -65,7 +65,7 @@ def isnot_missingvalue(value):
     return 0 if pd.isna(value) else 1
 
 
-def get_encoded_wrapper(df, encode_nulls=False, return_mapping=False, exclude_from_encoding=None):
+def default_encoding(df, encode_nulls=False, return_mapping=False, exclude_from_encoding=None):
     """
     Returns a copy of the supplied dataframe where certain types of columns are re-encoded .
 

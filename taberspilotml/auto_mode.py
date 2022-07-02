@@ -111,7 +111,7 @@ def mixed_handler(step_name: str, function: Callable, parameters: dict, config_d
 default_steps = {'dataframe_transformation': (dv.dataframe_transformation, initial_checkpoint_handler),
                  'handle_missing_values': (taberspilotml.pre_modelling.handle_nulls.eval_imputation_method_wrapper,
                                            initial_checkpoint_handler),
-                 'encoding': (enc.get_encoded_wrapper, initial_checkpoint_handler),
+                 'encoding': (enc.default_encoding, initial_checkpoint_handler),
                  'baseline_score': (bh.get_baseline_score, support_handler),
                  # 'baseline_score': (base_helpers.baseline_score_cv, support_handler)
                  }
