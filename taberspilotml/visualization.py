@@ -67,7 +67,7 @@ def get_graph(input_data, figsize=(5, 6), stage='default_stage in pipeline', col
         plt.show()
 
 
-def get_initial_graphs(df, target=None, save_figures=False, palette=DEFAULT_PALETTE):
+def get_initial_eda_graphs(df, target=None, save_figures=False, palette=DEFAULT_PALETTE):
     # PART 1
     print('Count plots')
     n_max_categories = 20

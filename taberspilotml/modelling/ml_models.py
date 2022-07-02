@@ -14,6 +14,18 @@ import taberspilotml.scoring_funcs.scorers as scorers
 import taberspilotml.visualization as vs
 
 
+def algorithm_selector():
+    # I could assign a score to all this
+    ###### outliers,
+    # if outlier issue: Naive bayes classifier, svm, tree, forest, gradient boosint , knearest neighbors,
+    # neural networks(cant handle if they are too many )
+
+
+    ##### missing data
+    # if missing data is issue: naive bayes classifier, trees, random forest, gradient boosting, ada boost, k means,
+    pass
+
+
 def eval_model_scaler_wrapper(df, target_label, model_name, k_fold_method='k_fold', n_folds=5,
                               n_repeats=10, classification=True, evaluation_metric='accuracy'):
     """
@@ -193,7 +205,8 @@ def evaluate_models_wrapper(df: pd.DataFrame, target_label: str, models_list: li
         scores[model_name] = cv_results
         models_dict[model_name] = model
 
-    a, b, best_method = h.get_best_score(scores, classification=classification, multiple_eval_scores=multiple_eval_scores)
+    a, b, best_method = h.get_best_score(scores, classification=classification,
+                                         multiple_eval_scores=multiple_eval_scores)
 
     plot_dict = {k: v[f'test_{evaluation_metric}'] for k, v in
                  scores.items()} if multiple_eval_scores else {k: v[0] for k, v in scores.items()}

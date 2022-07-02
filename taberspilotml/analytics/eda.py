@@ -8,7 +8,7 @@ from taberspilotml.decorators import time_performance_decor, gc_collect_decor
 
 # EDA PACKAGES
 import sweetviz as sv
-from taberspilotml.visualization import get_initial_graphs
+from taberspilotml.visualization import get_initial_eda_graphs
 
 
 def get_summary_report(df: pd.DataFrame):
@@ -38,7 +38,7 @@ def initial_eda_wrapper(df: pd.DataFrame, target_label=None, summary_report=True
     imb.check_imbalance_degree(df, target_label)
 
     print('2: Generating initial graphs...')
-    get_initial_graphs(df, target=target_label, save_figures=save_figures)
+    get_initial_eda_graphs(df, target=target_label, save_figures=save_figures)
 
     if summary_report:
         get_summary_report(df)
