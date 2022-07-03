@@ -1,4 +1,3 @@
-""" WORK IN PROGRESS """
 from statsmodels.multivariate.pca import PCA
 import pandas as pd
 import numpy as np

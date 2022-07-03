@@ -1,3 +1,4 @@
+statsmodels
 shap
 pandas
 scikit-learn==0.24.2
