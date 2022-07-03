@@ -25,3 +25,36 @@ class PCAAnalytics:
         plt.subplots(figsize=(20, 20))
         sns.heatmap(covariance_df, cmap='Blues', linewidths=.7, annot=True, fmt='.2f', yticklabels=self.df.columns)
         plt.show()
+
+    def show_components(self):
+        return self.pca.factors
+
+    def show_loadings(self):
+        return self.pca.loadings
+
+    def show_correlation_plot(self):
+        components_df = self.show_components()
+
+        combined_df = pd.concat([self.df, components_df], axis=1)
+        correlation = combined_df.corr()
+
+        correlation_plot_data = correlation[:-len(components_df.columns)].loc[:, 'comp_00':]
+
+        # plot correlation matrix
+        fig, ax = plt.subplots(figsize=(40, 15))
+        sns.heatmap(correlation, cmap='YlGnBu', linewidths=.7, annot=True, fmt='.2f')
+        plt.show()
+
+        return correlation_plot_data
+
+    def feature_selection_eigenvalue(self):
+        # Select all values greater than 1
+        eigen_values = pd.DataFrame(data=self.pca.eigenvals.values, columns=['eigenvalue'])
+
+        return eigen_values[eigen_values['eigenvalue'] > 1]
+
+    def feature_selection_cumulative_variance(self):
+
+        return pd.DataFrame(data=self.pca.rsquare.values, columns=['cumulative_var'])
+
+
