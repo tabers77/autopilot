@@ -2,6 +2,10 @@ import matplotlib.pyplot as plt
 
 
 def get_pareto_df(df, col_name, cols):
+    """
+    Example:
+        df = get_paretto_df(df, cols=  [ 'quarters', 'is_weekend'])
+    """
     df = df.copy()
 
     df['mix_col'] = df[cols[0]].astype(str) + ' - ' + df[cols[1]].astype(str)
@@ -14,6 +18,10 @@ def get_pareto_df(df, col_name, cols):
 
 
 def generate_pareto_graph(df, col_name):
+    """
+    Observe that this function takes as an input function get_pareto_df
+
+    """
     output_df = df.copy()
     fig, ax = plt.subplots(figsize=(30, 10))
 
