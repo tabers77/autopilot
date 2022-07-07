@@ -20,6 +20,5 @@ deprecated
 scipy
 snowflake-connector-python
 SQLAlchemy
-tuiconns
 snowflake-sqlalchemy
 
