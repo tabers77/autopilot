@@ -47,26 +47,26 @@ def get_weighted_avg_score(df: pd.DataFrame, cols: list, weights: dict):
     # return round(output, 2)
 
 
-def compute_ranking(dataset: pd.DataFrame, cols: list, weights: dict):
-    """
-
-    Args:
-        dataset:
-        cols: Ex: cols = ['Clicks', 'CTR', 'Spent', 'importance']
-        weights:
-
-    Returns:
-
-    """
-    dataset = dataset.copy()
-
-    for col in cols:
-        dataset = get_pct_per_column(df=dataset, col=col)
-
-    dataset['weighted_score'] = get_weighted_avg_score(df=dataset, weights=weights)
-    dataset['ranking'] = dataset['weighted_score'].rank(ascending=False)
-
-    return dataset
+# def compute_ranking(df: pd.DataFrame, cols: list, weights: dict):
+#     """
+#
+#     Args:
+#         copy_df:
+#         cols: Ex: cols = ['Clicks', 'CTR', 'Spent', 'importance']
+#         weights:
+#
+#     Returns:
+#
+#     """
+#     copy_df = df.copy()
+#
+#     for col in cols:
+#         copy_df = get_pct_per_column(df=copy_df, col=col)
+#
+#     copy_df['weighted_score'] = get_weighted_avg_score(df=copy_df, weights=weights)
+#     copy_df['ranking'] = copy_df['weighted_score'].rank(ascending=False)
+#
+#     return copy_df
 
 
 def compute_final_ranking(df1: pd.DataFrame, df2: pd.DataFrame, by_name=False):
