@@ -3,8 +3,10 @@ import matplotlib.pyplot as plt
 
 def get_pareto_df(df, col_name, cols):
     """
+    mix_col contains a combination of 2 cols for observations
+    col_name is the variable I will count or aggregate, Ex: user_id
     Example:
-        df = get_paretto_df(df, cols=  [ 'quarters', 'is_weekend'])
+        df = get_pareto_df(df, cols=  [ 'quarters', 'is_weekend'])
     """
     df = df.copy()
 
@@ -19,8 +21,8 @@ def get_pareto_df(df, col_name, cols):
 
 def generate_pareto_graph(df, col_name):
     """
-    Observe that this function takes as an input function get_pareto_df
-
+    OBS: This function takes as an input function get_pareto_df
+    col_name is the variable I will count or aggregate, Ex: user_id
     """
     output_df = df.copy()
     fig, ax = plt.subplots(figsize=(30, 10))
