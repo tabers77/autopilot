@@ -1,1 +1,1 @@
-__all__ = ['eda']
+__all__ = ['eda', 'pareto', 'pca', 'w_avg']
