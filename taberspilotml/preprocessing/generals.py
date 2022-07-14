@@ -7,7 +7,6 @@ def data_evaluator_draft():
     pass
 
 
-
 def dataframe_transformation(df: pd.DataFrame, cols_to_exclude=None, drop_missing_cols=False,
                              drop_missing_rows=False, object_is_numerical_cols=None):
     """
