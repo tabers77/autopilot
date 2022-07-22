@@ -38,7 +38,7 @@ def get_pareto_df(df: pd.DataFrame, agg_col: str, cols: list, agg_type: str, uni
     return output_df
 
 
-def generate_pareto_graph(df, col_name, agg_type: str):
+def generate_pareto_graph(df, col_name, agg_type: str, x_limit=10):
     """
     OBS: This function takes as an input function get_pareto_df
     col_name is the variable I will count or aggregate, Ex: user_id
@@ -49,6 +49,7 @@ def generate_pareto_graph(df, col_name, agg_type: str):
     idx = list(output_df['mix_col'].unique())
     # Plot bars (i.e. frequencies)
     ax.bar(idx, output_df[f"total_{agg_type}"])
+
     ax.set_title("Pareto Chart")
     ax.set_xlabel(f"Number of {col_name}")
     ax.set_ylabel("Frequency")
@@ -58,5 +59,6 @@ def generate_pareto_graph(df, col_name, agg_type: str):
     ax2.plot(idx, output_df["cum_percentage"], color="red", marker="D", ms=7)
     ax2.axhline(80, color="orange", linestyle="dashed")
     ax2.set_ylabel("Cumulative Percentage")
+    plt.xlim(-1, x_limit - 1)
 
     plt.show()
