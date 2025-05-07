@@ -32,24 +32,32 @@ def metrics_to_scoringdict(metrics: Sequence[EvalMetrics], averaging_policy: Opt
     """
 
     scoring_dict = {}
+    # -------------------------------
+    # TEST: EvalMetrics is weird
     for m in metrics:
-        if m in [EvalMetrics.ACCURACY,
-                 EvalMetrics.NEG_MEAN_SQUARED_ERROR,
-                 EvalMetrics.NEG_ROOT_MEAN_SQUARED_ERROR,
-                 EvalMetrics.NEG_MEAN_ABSOLUTE_ERROR,
-                 EvalMetrics.R2]:
-
-            scoring_dict[m.value] = m.value
-        else:
-            if m is EvalMetrics.F1_SCORE:
-                score = f1_score
-            elif m is EvalMetrics.PRECISION_SCORE:
-                score = precision_score
-            elif m is EvalMetrics.RECALL_SCORE:
-                score = recall_score
-            else:
-                raise ValueError(f'{m} is not a valid metric for make_scorer')
-
-            scoring_dict[m.value] = sklearn.metrics.make_scorer(score, average=averaging_policy)
+        scoring_dict[m.value] = m.value
 
     return scoring_dict
+    # -------------------------------
+
+    # for m in metrics:
+    #     if m in [EvalMetrics.ACCURACY,
+    #              EvalMetrics.NEG_MEAN_SQUARED_ERROR,
+    #              EvalMetrics.NEG_ROOT_MEAN_SQUARED_ERROR,
+    #              EvalMetrics.NEG_MEAN_ABSOLUTE_ERROR,
+    #              EvalMetrics.R2]:
+    #
+    #         scoring_dict[m.value] = m.value
+    #     else:
+    #         if m is EvalMetrics.F1_SCORE:
+    #             score = f1_score
+    #         elif m is EvalMetrics.PRECISION_SCORE:
+    #             score = precision_score
+    #         elif m is EvalMetrics.RECALL_SCORE:
+    #             score = recall_score
+    #         else:
+    #             raise ValueError(f'{m} is not a valid metric for make_scorer')
+    #
+    #         scoring_dict[m.value] = sklearn.metrics.make_scorer(score, average=averaging_policy)
+    #
+    # return scoring_dict

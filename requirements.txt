@@ -1,7 +1,7 @@
 statsmodels
 shap
 pandas
-scikit-learn==0.24.2
+scikit-learn
 matplotlib
 hyperopt
 optuna
@@ -11,14 +11,20 @@ xgboost
 numpy
 mlflow
 sweetviz
-google-cloud-bigquery
-tensorflow
-keras
-snowflake-connector-python
-py4j
+#google-cloud-bigquery
+#tensorflow
+#keras
+#snowflake-connector-python
+#py4j
 deprecated
 scipy
-snowflake-connector-python
-SQLAlchemy
-snowflake-sqlalchemy
+#snowflake-connector-python
+#SQLAlchemy
+#snowflake-sqlalchemy
+langchain-openai>=0.1.8
+langchain==0.3.20
 
+python-dotenv
+numpy>=1.24
+langchain_experimental # TEST
+pydantic>=2.7.4

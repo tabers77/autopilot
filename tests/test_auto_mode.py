@@ -83,8 +83,8 @@ class AutopilotModeTestCase(unittest.TestCase):
         print(summary)
 
     @patch.dict(auto.default_steps, values=test_default_steps)
-    @patch.dict(auto.all_pipeline_steps, values={'evaluate_models': (lambda fake_arg: ((0.4, 0.2), 'model'),
-                                                                     auto.scoring_handler)})
+    @patch.dict(auto.all_pipeline_steps_ex_default_steps, values={'evaluate_models': (lambda fake_arg: ((0.4, 0.2), 'model'),
+                                                                                      auto.scoring_handler)})
     @patch.object(taberspilotml.base_helpers, 'update_upload_config')
     def test_modelling_step(self, mock_update_upload_config: mock.MagicMock):
         config = dict(self.config)
@@ -101,8 +101,8 @@ class AutopilotModeTestCase(unittest.TestCase):
             config_dict=config, model='model', run_name='1_evaluate_models_stage', scores=(0.4, 0.2))
 
     @patch.dict(auto.default_steps, values=test_default_steps)
-    @patch.dict(auto.all_pipeline_steps, values={'grid_search': (lambda fake_arg: ((0.4, 0.2), 'params', 'model'),
-                                                                 auto.hyper_p_handler)})
+    @patch.dict(auto.all_pipeline_steps_ex_default_steps, values={'grid_search': (lambda fake_arg: ((0.4, 0.2), 'params', 'model'),
+                                                                                  auto.hyper_p_handler)})
     @patch.object(taberspilotml.base_helpers, 'update_upload_config')
     def test_hyperparam_step(self, mock_update_upload_config: mock.MagicMock):
         config = dict(self.config)
@@ -120,8 +120,8 @@ class AutopilotModeTestCase(unittest.TestCase):
             config_dict=config, model='model', run_name='1_grid_search_stage', scores=(0.4, 0.2), tuned_params='params')
 
     @patch.dict(auto.default_steps, values=test_default_steps)
-    @patch.dict(auto.all_pipeline_steps, values={'handle_outliers': (lambda fake_arg: ((0.4, 0.2), 'result_df'),
-                                                                     auto.mixed_handler)})
+    @patch.dict(auto.all_pipeline_steps_ex_default_steps, values={'handle_outliers': (lambda fake_arg: ((0.4, 0.2), 'result_df'),
+                                                                                      auto.mixed_handler)})
     @patch.object(taberspilotml.base_helpers, 'update_upload_config')
     def test_mixed_step(self, mock_update_upload_config: mock.MagicMock):
         config = dict(self.config)

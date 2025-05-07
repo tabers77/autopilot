@@ -6,6 +6,10 @@ import seaborn as sns
 
 import taberspilotml.base_helpers as h
 
+import matplotlib
+matplotlib.use('TkAgg')
+
+
 DEFAULT_COLOR = 'firebrick'
 DEFAULT_PALETTE = 'mako'
 

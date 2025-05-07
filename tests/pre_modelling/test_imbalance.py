@@ -9,6 +9,7 @@ import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
 
+import taberspilotml.analytics.eda
 from taberspilotml import base_helpers as bh
 from taberspilotml.pre_modelling import imbalance
 from taberspilotml.scoring_funcs import (cross_validation as cv,
@@ -45,7 +46,7 @@ class TrainVsTestTestCase(utils.PandasTestCase):
         train = dataset.sample(frac=0.8, random_state=37)
         test = dataset.drop(train.index)
 
-        tvt = imbalance.TrainVsTest(train, test)
+        tvt = taberspilotml.analytics.eda.TrainVsTest(train, test)
 
         model = RandomForestClassifier()
         with patch.object(d.Dataset, 'from_dataframe', return_value=ds) as mock_fromdf:
@@ -72,7 +73,7 @@ class TrainVsTestTestCase(utils.PandasTestCase):
         train = dataset.sample(frac=0.8, random_state=37)
         test = dataset.drop(train.index)
 
-        tvt = imbalance.TrainVsTest(train, test)
+        tvt = taberspilotml.analytics.eda.TrainVsTest(train, test)
 
         model = RandomForestClassifier()
         with patch.object(d.Dataset, 'from_dataframe', return_value=d.Dataset(ds.inputs, ds.labels)) as mock_fromdf:

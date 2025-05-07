@@ -1,19 +1,64 @@
 """******** SCORING FUNCTIONS - SCORERS  ******** """
-from typing import Sequence
-
-import pandas as pd
+from typing import Sequence, Optional, Tuple, Union, List, Dict
 import numpy as np
+import pandas as pd
+
 from sklearn.model_selection import TimeSeriesSplit
 
 import taberspilotml.base_helpers as bh
-import taberspilotml.scoring_funcs.evaluation_metrics
+import taberspilotml.scoring_funcs.evaluation_metrics as em
 from taberspilotml import constants
-from taberspilotml import configs as dicts
-from taberspilotml.configs import models, scoring_metrics
+from taberspilotml.conf import configs as dicts
+from taberspilotml.conf.configs import models, scoring_metrics
 from taberspilotml.pre_modelling import handle_nulls
 from taberspilotml.scoring_funcs import cross_validation as cv
 from taberspilotml.scoring_funcs import datasets as d
 from taberspilotml.decorators import time_performance_decor, gc_collect_decor
+
+
+class EvaluationResults:
+    def __init__(self, scores: Dict[str, Tuple[float, float]] | List[float],
+                 evaluation_metrics: Sequence[em.EvalMetrics]) -> None:
+        """
+        Initialize the EvaluationResults instance.
+
+        :param scores: A dictionary of metric names and their corresponding (mean, std) values or a list of float values.
+        :param evaluation_metrics: A sequence of evaluation metrics to be used for testing.
+        """
+        self.scores = scores
+        self.evaluation_metrics = evaluation_metrics
+
+        # Perform validation based on whether there is one or more evaluation metrics
+        if len(self.evaluation_metrics) > 1:
+            # Validation for multiple metrics (dict format)
+            self._validate_multiple_metrics()
+        else:
+            # Validation for a single metric (list format)
+            self._validate_single_metric()
+
+    def _validate_multiple_metrics(self):
+        """Validate the scores for multiple evaluation metrics."""
+        if not isinstance(self.scores, dict):
+            raise TypeError("Expected scores to be a dictionary for multiple metrics.")
+        if len(self.scores) <= 1:
+            raise ValueError("Expected more than one metric in the scores dictionary.")
+        if not all(isinstance(metric_name, str) for metric_name in self.scores.keys()):
+            raise ValueError("All metric names should be strings.")
+        if not all(isinstance(value, tuple) and len(value) == 2 for value in self.scores.values()):
+            raise ValueError("Each dictionary value should be a tuple with two elements.")
+        if not all(isinstance(value[0], float) and isinstance(value[1], float) for value in self.scores.values()):
+            raise ValueError("Each tuple should contain two float values.")
+
+    def _validate_single_metric(self):
+        """Validate the scores for a single evaluation metric."""
+        if not isinstance(self.scores, dict):
+            raise TypeError("Expected scores to be a dict for a single metric.")
+        if len(self.scores) != 1:
+            raise ValueError("Expected the dict to contain exactly two values.")
+
+    def __repr__(self):
+        """String representation of the EvaluationResults object."""
+        return f"EvaluationResults(scores={self.scores}, evaluation_metrics={self.evaluation_metrics})"
 
 
 @time_performance_decor
@@ -21,27 +66,15 @@ from taberspilotml.decorators import time_performance_decor, gc_collect_decor
 def get_cross_validation_score(dataset: d.Dataset, model=models['clf']['RF'],
                                split_policy=cv.SplitPolicy.kfold_default(),
                                averaging_policy=None,
-                               evaluation_metrics: Sequence[taberspilotml.scoring_funcs.evaluation_metrics.EvalMetrics] = (
-                                       taberspilotml.scoring_funcs.evaluation_metrics.EvalMetrics.ACCURACY,),
-                               n_jobs=-1, verbose=0):
+                               evaluation_metrics: Sequence[
+                                   em.EvalMetrics] = (
+                                       em.EvalMetrics.ACCURACY,),
+                               n_jobs=-1, verbose=0) -> Dict[str, Tuple[float, float]]:
     """
+    Perform cross-validation and return evaluation results.
 
-    :param dataset:
-        The dataset to use.
-    :param model:
-        The model to use.
-    :param split_policy:
-        Cross validation split policy.
-    :param averaging_policy:
-        Averaging policy when using multiple evaluation metrics
-    :param evaluation_metrics:
-        The evaluation metrics
-    :param n_jobs:
-        Number of jobs to run in parallel. -1 will use the default value.
-    :param verbose:
-        The verbosity level
-    :return:
-        Either the means for each metric or the mean, std dev for the supplied metric if there is only one metric.
+    Returns:
+        Dict[str, Tuple[float, float]]: A dictionary mapping metric names to (mean, std) tuples.
     """
 
     cv_result = cv.get_cv_scores(model, dataset, evaluation_metrics, split_policy.build(), n_jobs, verbose,
@@ -51,33 +84,54 @@ def get_cross_validation_score(dataset: d.Dataset, model=models['clf']['RF'],
     # cv_result however contains scores for each split, so other users can do what they want with that.
     means = cv_result.mean()
     std = cv_result.std()
+    results = dict()
     if len(evaluation_metrics) > 1:
-        return means
-    return [means[evaluation_metrics[0].value], std[evaluation_metrics[0].value]]
+
+        for eval_metric in evaluation_metrics:
+            metric_name = f'test_{eval_metric.value}'
+            results[metric_name] = (means[metric_name], std[metric_name])
+        return EvaluationResults(scores=results, evaluation_metrics=evaluation_metrics).scores
+
+    results[evaluation_metrics[0].value] = (means[evaluation_metrics[0].value], std[evaluation_metrics[0].value])
+
+    return EvaluationResults(scores=results, evaluation_metrics=evaluation_metrics).scores
 
 
 @time_performance_decor
 @gc_collect_decor
-def get_hold_out_score(df=None, target_label=None, x=None, y=None, return_all=False, classification=True,
-                       model=models['clf']['RF'], test_size=0.2,
-                       evaluation_metric='accuracy'):
+def get_hold_out_score(
+        df: Optional[pd.DataFrame] = None,
+        target_label: Optional[str] = None,
+        x: Optional[np.ndarray] = None,
+        y: Optional[np.ndarray] = None,
+        return_all: bool = False,
+        classification: bool = True,
+        model=models['clf']['RF'],
+        test_size: float = 0.2,
+        evaluation_metrics: Sequence[
+            em.EvalMetrics] = (
+                em.EvalMetrics.ACCURACY,)
+) -> Union[Dict[str, Tuple[float, float]], Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
     """
-
-    Args:
-        df:
-        target_label:
-        x:
-        y:
-        return_all:
-        classification:
-        model:
-        test_size:
-        evaluation_metric:
+    Computes a hold-out validation score.
 
     Returns:
-
+        - If `return_all` is False: A dictionary mapping metric names to (mean, std) tuples.
+        - If `return_all` is True: A tuple `(x_train, x_test, y_train, y_test, y_pred)`.
     """
-    scorer = scoring_metrics['clf'][evaluation_metric] if classification else scoring_metrics['reg'][evaluation_metric]
+
+    def get_multi_metrics_result(evaluation_metrics):
+
+        assert len(evaluation_metrics) > 1
+
+        results = dict()
+        for eval_metric in evaluation_metrics:
+            scorer = scoring_metrics['clf'][eval_metric.value] if classification else scoring_metrics['reg'][
+                eval_metric.value]
+            results[eval_metric.value] = (scorer(y_test, y_pred), np.nan)
+
+        return results
+
     if isinstance(df, pd.DataFrame) and x is None and y is None:
         print('Generating internal x,y')
         x, y = bh.get_x_y_from_df(df, target_label)
@@ -87,10 +141,21 @@ def get_hold_out_score(df=None, target_label=None, x=None, y=None, return_all=Fa
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
 
-    if not return_all:
-        return scorer(y_test, y_pred)
-    else:
+    if return_all:
         return x_train, x_test, y_train, y_test, y_pred
+
+    else:
+
+        if len(evaluation_metrics) > 1:
+            return EvaluationResults(scores=get_multi_metrics_result(evaluation_metrics),
+                                     evaluation_metrics=evaluation_metrics).scores
+        else:
+            scorer = scoring_metrics['clf'][evaluation_metrics[0].value] if classification else scoring_metrics['reg'][
+                evaluation_metrics[0].value]
+            result = dict()
+            result[evaluation_metrics[0].value] = (scorer(y_test, y_pred), np.nan)
+            return EvaluationResults(scores=result,
+                                     evaluation_metrics=evaluation_metrics).scores
 
 
 def get_custom_cv_score(df: pd.DataFrame, target_label: str, classification: bool, evaluation_metric: str, model,
@@ -178,6 +243,9 @@ def get_scaled_x_score(df, target_label, model_name='RF', scaler_name='MinMax', 
 
     scores = get_cross_validation_score(dataset=dataset, model=model, split_policy=policy,
                                         evaluation_metrics=[
-                                            taberspilotml.scoring_funcs.evaluation_metrics.EvalMetrics.from_str(evaluation_metric)])
+                                            em.EvalMetrics.from_str(
+                                                evaluation_metric)])
+
+    scores = scores[em.EvalMetrics.from_str(evaluation_metric).value]
 
     return scores[0], scores[1]

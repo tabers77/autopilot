@@ -1,44 +1,86 @@
 """ Code for uploading models, parameters and metrics to mlflow """
-from typing import Any, Callable, Union
+from typing import Any, Callable, Union, Dict, Tuple
 import mlflow
 import pandas as pd
-from keras.models import Functional, Sequential
+from taberspilotml.scoring_funcs.scorers import EvaluationResults
+from sklearn.base import BaseEstimator
 
 
-def upload_baseline_score(df, run_id_number, evaluation_metric, scores, model):
-    """ Used for uploading baseline scores during autopilot mode.
+# from keras.models import Functional, Sequential'
 
-    :param df:
-        The dataset.
-    :param run_id_number:
-        The run ID number for mlflow
-    :param evaluation_metric:
-        The evaluation metric used.
-    :param scores:
-        The scores.
-    :param model:
-        The model
+def safe_start_run(run_name: str):
+    """
+    Safely starts an MLflow run, handling nested runs if an active run exists.
+
+    Args:
+        run_name (str): The name of the run to start.
+
+    Returns:
+        None
+    """
+    if mlflow.active_run() is not None:
+        # Start a nested run if there is already an active run
+        return mlflow.start_run(run_name=run_name, nested=True)
+    else:
+        # Start a new run if no active run exists
+        return mlflow.start_run(run_name=run_name)
+
+
+def upload_baseline_score(df: pd.DataFrame,
+                          run_id_number: int,
+                          scores: Dict[str, Dict[str, Tuple[float, float]],],
+                          model: BaseEstimator) -> None:
+    """
+    Uploads baseline scores during autopilot mode to MLflow.
+    Note: Don't forget to start the MLflow server before running this function.
+
+    Args:
+        df (pd.DataFrame): The dataset used for evaluation.
+        run_id_number (int): The unique run ID for MLflow tracking.
+        scores (Dict[str, EvaluationResults]): Dictionary containing score types ('cv' or 'hold_out')
+            and their associated EvaluationResults.
+        model (BaseEstimator): The trained machine learning model.
+
+    Raises:
+        ValueError: If score_values is not an instance of EvaluationResults.
+        ValueError: If score_type is not 'cv' or 'hold_out'.
+
+    Example:
+        upload_baseline_score(df, "run_1234", scores, model)
     """
 
+    mlflow.set_tracking_uri(uri="http://127.0.0.1:8080")
+    mlflow.set_experiment(f"experiment_{run_id_number}")
+
+    print('URI STARTED')
+
     run_name = f'{run_id_number}_baseline_score_stage'
-    with mlflow.start_run(run_name=run_name):
-        mlflow.log_metric(evaluation_metric, scores[0])
-        mlflow.log_metric('std', scores[1])
+    with safe_start_run(run_name=run_name):
+        # with mlflow.start_run(run_name=run_name):
+        for score_type, score_values in scores.items():
+            if not isinstance(score_values, dict):
+                raise ValueError('score_values must be an instance of dict')
 
-        for name, param_value in model.get_params().items():
-            if param_value is not None:
-                mlflow.log_param(name, param_value)
+            if score_type not in ['cv', 'hold_out']:
+                raise ValueError('Invalid score type')
 
-        mlflow.log_param('num_rows', df.shape[0])
-        mlflow.log_param('num_features', len(tuple(df.columns)))
-        mlflow.log_param('features_inc_target', tuple(df.columns))
+            prefix = f"{score_type}_"
+            for metric_name, (mean, std) in score_values.items():
+                metric_name = f"{prefix}{metric_name.replace('test_', '')}"
+                mlflow.log_metric(metric_name, mean)
+                mlflow.log_metric(f"{metric_name}_std", std)
+
+        mlflow.log_params({name: value for name, value in model.get_params().items() if value is not None})
+        mlflow.log_params({
+            'num_rows': df.shape[0],
+            'num_features': len(df.columns),
+            'features_inc_target': tuple(df.columns)
+        })
 
         print('Logging sklearn artifacts...')
-
         mlflow.sklearn.log_model(model, run_name)
 
-    print('Find your results here: http://localhost:5000/')
-
+    print('Find your results here: http://127.0.0.1:8080')
     mlflow.end_run()
 
 
@@ -53,24 +95,28 @@ def upload_artifacts(model_name: str, model=None):
     :param model:
         The model
     """
-    if isinstance(model, Functional):
-        # Sequential inherits from Functional so test if the model is sequential before rejecting the model.
-        is_keras_sequential = isinstance(model, Sequential)
-        assert is_keras_sequential, "Keras Functional models not supported."
-    else:
-        is_keras_sequential = False
+    ## NOTE: UNCOMMENT THIS FOR KERAS MODELS
+    # if isinstance(model, Functional):
+    #     # Sequential inherits from Functional so test if the model is sequential before rejecting the model.
+    #     is_keras_sequential = isinstance(model, Sequential)
+    #     assert is_keras_sequential, "Keras Functional models not supported."
+    # else:
+    #     is_keras_sequential = False
+    with safe_start_run(run_name=model_name):
+        # with mlflow.start_run(run_name=model_name):
+        ## NOTE: UNCOMMENT THIS FOR KERAS MODELS
 
-    with mlflow.start_run(run_name=model_name):
-        if is_keras_sequential:
-            print('Logging KERAS Sequential model artifacts...')
-            mlflow.keras.log_model(model, model_name)
-        else:  # Assume we have a sk-learn model
-            for name, param_value in model.get_params().items():
-                if param_value is not None:
-                    mlflow.log_param(name, param_value)
+        # if is_keras_sequential:
+        #     print('Logging KERAS Sequential model artifacts...')
+        #     mlflow.keras.log_model(model, model_name)
+        # else:  # Assume we have a sk-learn model
 
-            print('Logging SK-LEARN model artifacts...')
-            mlflow.sklearn.log_model(model, model_name)
+        for name, param_value in model.get_params().items():
+            if param_value is not None:
+                mlflow.log_param(name, param_value)
+
+        print('Logging SK-LEARN model artifacts...')
+        mlflow.sklearn.log_model(model, model_name)
 
 
 class MLFlow:
@@ -102,7 +148,8 @@ class MLFlow:
         :returns:
             The scores computing by the scoring function.
         """
-        with mlflow.start_run(run_name=model_name):
+        with safe_start_run(run_name=model_name):
+            # with mlflow.start_run(run_name=model_name):
             scores = scoring_function(df=df, target_label=target_label, model=model,
                                       evaluation_metric=evaluation_metric, *args, **kwargs)
             mlflow.log_param('Num rows', df.shape[0])
@@ -134,8 +181,8 @@ class MLFlow:
         :returns:
             The scores computed by the scoring function.
         """
-
-        with mlflow.start_run(run_name=model_name):
+        with safe_start_run(run_name=model_name):
+            # with mlflow.start_run(run_name=model_name):
             scores = scoring_function(x=x, y=y, model=model, evaluation_metric=evaluation_metric, *args, **kwargs)
             try:
                 mlflow.log_param('num_rows', x.shape[0])
@@ -191,7 +238,8 @@ class MLFlow:
 
         config_results = self.get_params_to_upload(self.params_keys)
         print('Uploading config to MLFLOW...')
-        with mlflow.start_run(run_name=run_name):
+        with safe_start_run(run_name=run_name):
+            # with mlflow.start_run(run_name=run_name):
             for param, value in config_results.items():
                 if param == self.config_dict['evaluation_metric']:
                     mlflow.log_metric(param, value)

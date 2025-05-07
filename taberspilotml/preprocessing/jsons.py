@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import json
 
+
 def input_to_json(input_):
     new_json = {}
 

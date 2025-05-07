@@ -4,7 +4,7 @@ from sklearn.linear_model import LogisticRegression, LinearRegression
 
 import taberspilotml.base_helpers as h
 from taberspilotml import constants
-from taberspilotml.configs import scalers, transformers, models
+from taberspilotml.conf.configs import scalers, transformers, models
 import taberspilotml.hyper_opti as hyper_p
 
 from taberspilotml.scoring_funcs import cross_validation as cv
@@ -12,18 +12,6 @@ from taberspilotml.scoring_funcs import evaluation_metrics as em
 from taberspilotml.scoring_funcs import datasets
 import taberspilotml.scoring_funcs.scorers as scorers
 import taberspilotml.visualization as vs
-
-
-def algorithm_selector():
-    # I could assign a score to all this
-    ###### outliers,
-    # if outlier issue: Naive bayes classifier, svm, tree, forest, gradient boosint , knearest neighbors,
-    # neural networks(cant handle if they are too many )
-
-
-    ##### missing data
-    # if missing data is issue: naive bayes classifier, trees, random forest, gradient boosting, ada boost, k means,
-    pass
 
 
 def eval_model_scaler_wrapper(df, target_label, model_name, k_fold_method='k_fold', n_folds=5,
@@ -200,7 +188,8 @@ def evaluate_models_wrapper(df: pd.DataFrame, target_label: str, models_list: li
                                                         averaging_policy='macro' if multi_classif else None,
                                                         evaluation_metrics=eval_metrics,
                                                         n_jobs=n_jobs, verbose=verbose)
-
+        cv_results = cv_results[evaluation_metric]
+        print('cv_results', cv_results)
         print(f'Score for {model_name}: {cv_results}')
         scores[model_name] = cv_results
         models_dict[model_name] = model
@@ -212,7 +201,7 @@ def evaluate_models_wrapper(df: pd.DataFrame, target_label: str, models_list: li
                  scores.items()} if multiple_eval_scores else {k: v[0] for k, v in scores.items()}
 
     vs.get_graph(input_data=plot_dict, stage='Models', figsize=(6, 4), color=constants.DEFAULT_COLOR, horizontal=True,
-                 style='seaborn-darkgrid',
+                 style='ggplot',
                  fig_title=f'Best Models Scores', x_title='Params', y_title='Scores', save_figure=True,
                  file_name='best_models_scores')
 

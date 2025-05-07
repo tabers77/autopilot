@@ -1,6 +1,21 @@
 # ignore d store 
 *.DS_Store
-.idea
 # cache files
 **/__pycache__/ 
 .ipynb_checkpoints/
+../.idea/
+.idea/
+venv
+__pycache__/
+.env
+data
+
+taberspilotml/mlruns
+taberspilotml/experimental
+taberspilotml/analytics/llms_results
+taberspilotml/AutoMLTuiRuns
+
+mlartifacts
+mlruns
+mlflow.db
+taberspilotml/main.py

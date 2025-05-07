@@ -1,6 +1,6 @@
 """ Dictionaries """
 import numpy as np
-from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, mean_squared_error
+from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, mean_squared_error, r2_score
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, QuantileTransformer, KBinsDiscretizer, PowerTransformer
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.neural_network import MLPClassifier, MLPRegressor
@@ -21,7 +21,8 @@ scoring_metrics = {'clf': ({'accuracy': accuracy_score,
                        {'neg_mean_absolute_error': mean_absolute_error,
                         'mean_absolute_error': mean_absolute_error,
                         'neg_mean_squared_error': mean_squared_error,
-                        'mean_squared_error': mean_squared_error
+                        'mean_squared_error': mean_squared_error,
+                        'r2': r2_score
                         })}
 
 replace_methods = {'mean': np.mean, 'median': np.median}

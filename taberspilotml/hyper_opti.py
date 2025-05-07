@@ -8,7 +8,7 @@ from sklearn import model_selection as ms
 
 import taberspilotml.scoring_funcs.evaluation_metrics
 from taberspilotml import constants
-from taberspilotml.configs import models, hyper_params
+from taberspilotml.conf.configs import models, hyper_params
 from taberspilotml.scoring_funcs import cross_validation as cv
 from taberspilotml.scoring_funcs.datasets import Dataset
 import taberspilotml.base_helpers as h
@@ -99,6 +99,8 @@ def hyperopt_parameter_tuning_cv(df: pd.DataFrame, target_label: str, model_name
             dataset=dataset, model=model_base, split_policy=policy, evaluation_metrics=eval_metrics,
             n_jobs=-n_jobs, verbose=verbose)
 
+        score = score[evaluation_metric]
+
         scores[model_name] = score[0]
 
         print(f'Accuracy: {score[0]}')
@@ -179,9 +181,9 @@ def optuna_hyperopt(df: pd.DataFrame, target_label: str, model_name='XGB', n_min
             else:
                 model.set_params(**params)
 
-            score = scorers.get_hold_out_score(df=df, target_label=target_label, model=model,
-                                               test_size=test_size,
-                                               evaluation_metric=evaluation_metric)
+            score, _ = scorers.get_hold_out_score(df=df, target_label=target_label, model=model,
+                                                  test_size=test_size,
+                                                  evaluation_metrics=evaluation_metric)
 
             # Pruning
             trial.report(score, 0)

@@ -8,7 +8,7 @@ from unittest.mock import call, patch
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 import taberspilotml.pre_modelling.feature_importance as fi
-from taberspilotml.configs import models
+from taberspilotml.conf.configs import models
 from taberspilotml.scoring_funcs import evaluation_metrics as em
 import taberspilotml.scoring_funcs.scorers as sc
 

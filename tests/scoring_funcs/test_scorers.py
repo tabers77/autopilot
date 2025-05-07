@@ -14,7 +14,7 @@ from taberspilotml.scoring_funcs import (cross_validation as cv,
                                          datasets,
                                          scorers)
 from taberspilotml.scoring_funcs import datasets as d
-from taberspilotml.configs import models
+from taberspilotml.conf.configs import models
 
 
 class GetScaledXScoreTestCase(unittest.TestCase):
@@ -99,6 +99,7 @@ class GetCrossValidationScoreTestCase(unittest.TestCase, RegressionDFTestCase):
             dataset=ds, model=model, split_policy=split_policy,
             evaluation_metrics=[ev.EvalMetrics.NEG_MEAN_SQUARED_ERROR], n_jobs=-1,
             verbose=0)
+        results = results[ev.EvalMetrics.NEG_MEAN_SQUARED_ERROR.value]
 
         expected = -49757.012  # This is the consistent result (rounded) we get using the data and params above.
         self.assertEqual(expected, round(results[0], 3), f'result should be {expected:.3f}')
@@ -117,8 +118,8 @@ class GetTrainTestSplitScoreTestCase(utils.PandasTestCase):
         model = mock.Mock()
         with mock.patch.object(model, 'fit') as mock_fit:
             with mock.patch.object(model, 'predict', return_value=[1, 1]) as mock_predict:
-                result = scorers.get_hold_out_score(df, 'target', model=model,
-                                                    evaluation_metric='accuracy', test_size=0.4)
+                result, _ = scorers.get_hold_out_score(df, 'target', model=model,
+                                                       evaluation_metrics='accuracy', test_size=0.4)
 
                 self.assertEqual(0.5, result)
 

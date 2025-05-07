@@ -11,7 +11,7 @@ import shap
 
 import taberspilotml.constants
 from taberspilotml.scoring_funcs import datasets as d
-from taberspilotml.configs import models
+from taberspilotml.conf.configs import models
 import taberspilotml.base_helpers as h
 import taberspilotml.visualization as v
 from taberspilotml.scoring_funcs import evaluation_metrics as em
@@ -43,7 +43,6 @@ def auto_feature_selection_from_estimator(df: pd.DataFrame, target_label: str, e
 
 
 def get_reduced_features_cv_scores(df, target_label, model_name, classification):
-
     model = models['clf' if classification else 'reg'][model_name]
 
     scores_dict = {}
@@ -54,12 +53,14 @@ def get_reduced_features_cv_scores(df, target_label, model_name, classification)
     xs = {'reduced_x': copy_df[selected_features], 'x_all': copy_df.drop(target_label, axis=1)}
     y = copy_df[target_label]
     for name, x in xs.items():
+        evaluation_metrics = [em.EvalMetrics.ACCURACY
+                              if classification
+                              else em.EvalMetrics.NEG_MEAN_SQUARED_ERROR]
         scores = sc.get_cross_validation_score(dataset=d.Dataset(inputs=x, labels=y),
                                                model=model,
-                                               evaluation_metrics=[
-                                                   em.EvalMetrics.ACCURACY
-                                                   if classification
-                                                   else em.EvalMetrics.NEG_MEAN_SQUARED_ERROR])
+                                               evaluation_metrics=evaluation_metrics)
+
+        scores = scores[evaluation_metrics[0].value]
         scores_dict[name] = scores
 
     print(f'Scores: {scores_dict}')
@@ -140,7 +141,3 @@ class BestFeatures:
         # Generate shap values for al categories per user
         shap_values = shap.TreeExplainer(model).shap_values(x)
         shap.summary_plot(shap_values, x, plot_type="bar")
-
-
-
-

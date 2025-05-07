@@ -7,22 +7,31 @@ from sklearn.ensemble import RandomForestClassifier, IsolationForest
 
 from taberspilotml import base_helpers as h
 from taberspilotml import constants
-from taberspilotml.configs import scoring_metrics
+from taberspilotml.conf.configs import scoring_metrics
 import taberspilotml.visualization as vs
-import taberspilotml.configs as dicts
+import taberspilotml.conf.configs as dicts
 from taberspilotml.scoring_funcs import cross_validation as cv
 from taberspilotml.scoring_funcs.datasets import Dataset
 from taberspilotml.scoring_funcs import evaluation_metrics as ev
 from taberspilotml.scoring_funcs import scorers as scorers
 from taberspilotml.scoring_funcs.scorers import get_custom_cv_score
+import taberspilotml.conf.configs as configs
 
 
-def handle_outliers(df, target_label, tot_outlier_pct=4, classification=True,
-                    model=RandomForestClassifier(), evaluation_metric='accuracy', test_size=0.2, n_folds=5,
+def handle_outliers(df,
+                    target_label,
+                    tot_outlier_pct=4,
+                    classification=True,
+                    model_name='RF',
+                    # model=RandomForestClassifier(),
+                    evaluation_metric='accuracy',
+                    test_size=0.2,
+                    n_folds=5,
                     n_repeats=10):
     """
     Algorithms sensitive to outliers: Linear Regression, ADA boost
     Args:
+        model_name:
         df:
         target_label:
         tot_outlier_pct:
@@ -36,8 +45,11 @@ def handle_outliers(df, target_label, tot_outlier_pct=4, classification=True,
     Returns:
 
     """
+    model = configs.models['clf' if classification else 'reg'][model_name]
+
     # Load initial functions to be used
     funcs_to_eval = {'replace_outliers': replace_outliers, 'drop_outliers': drop_outliers}
+
 
     scores = {}
 
@@ -96,6 +108,7 @@ def handle_outliers(df, target_label, tot_outlier_pct=4, classification=True,
                                                         evaluation_metrics=[ev.EvalMetrics.from_str(evaluation_metric)],
                                                         split_policy=policy,
                                                         n_jobs=-1, verbose=0)
+    final_cv_score = final_cv_score[ev.EvalMetrics.from_str(evaluation_metric).value]
 
     output_dict = {best_method: final_cv_score}
 

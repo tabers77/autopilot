@@ -8,14 +8,16 @@ import re
 from datetime import datetime as dt
 from distutils import util
 from inspect import getfullargspec
-from time import time
+# from time import time
+import time as base_time
 
 import matplotlib.pyplot as plt
 import mlflow
 import numpy as np
 import pandas as pd
 
-from keras.models import Sequential
+# from keras.models import Sequential # Temporarily commented out
+
 from pandas.api import types as ptypes
 
 # SKLEARN HELP FUNCS
@@ -28,7 +30,7 @@ from sklearn.preprocessing import StandardScaler
 from taberspilotml import constants
 from taberspilotml.scoring_funcs import datasets as d, scorers as scorers, cross_validation as cv
 from taberspilotml.scoring_funcs import evaluation_metrics as em
-import taberspilotml.configs as configs
+import taberspilotml.conf.configs as configs
 from taberspilotml import mlflow_uploader as mf
 from taberspilotml.pre_modelling import encoders as enc
 
@@ -36,7 +38,6 @@ logging.basicConfig(level=logging.INFO)
 
 
 def printy(text: str, text_type='normal', p1=None, p2=None):
-
     text_len = len(text)
     if text_type == 'normal':
         print(text)
@@ -156,7 +157,7 @@ def convert_to_int_float_date(df: pd.DataFrame, object_is_numerical_cols=None):
         elif col in object_is_numerical_cols:
             df[col] = df[col].astype(str)
 
-    print(f'{convert_to_int_float_date.__name__} DONE')
+    print(f'{convert_to_int_float_date.__name__}')
 
     return df
 
@@ -245,7 +246,7 @@ def get_x_y_from_df(df: pd.DataFrame, target_label: str, scaled_df=False, scaler
 
 
 def train_test_split_from_df(df: pd.DataFrame, test_size: float):
-    """By default we will take the first part as the train set  """
+    """By default, we will take the first part as the train set  """
     train_size = 1 - test_size
     size = int(len(df) * train_size)
     train = df[:size].reset_index(drop=True)
@@ -316,12 +317,14 @@ def scale_x(df, target_label, scaler_name, use_transformers=False, transformer_n
 
 
 def save_figure_to_disk(df=None, main_folder=None, figure_name=None, save_as_plt=False, fig=None):
-    time_stamp = now_as_timestamp_string()
+    # time_stamp = now_as_timestamp_string()
+    time_stamp = base_time.strftime('%m-%d-%H-%M-%S')  # TEST
 
     print('Saving figure/table to disk...')
     current_directory = os.getcwd()
     final_directory = os.path.join(current_directory, f'AutoMLTuiRuns/{main_folder}/{time_stamp}')
-
+    # final_directory = os.path.join(current_directory, main_folder, time_stamp) # TEST
+    print('final_directory', final_directory)
     if not os.path.exists(final_directory):
         os.makedirs(final_directory)
 
@@ -368,9 +371,9 @@ def model_training_estimator_wrapper(func, df: pd.DataFrame, split_pct_param=0.0
         for n_rows in final_list:
             if n_rows >= 700:
                 print(f'N rows: {n_rows}')
-                t1 = time()
+                t1 = base_time.time()
                 func(dataframe=df[:n_rows], *args, **kwargs)
-                t2 = time()
+                t2 = base_time.time()
                 current_time_minutes = round((t2 - t1) / 60, 2)
                 print(current_time_minutes)
                 results[n_rows] = current_time_minutes
@@ -428,19 +431,32 @@ def get_best_score(scores: dict, classification=True, multiple_eval_scores=False
 
 
 def get_latest_score(config_dict: dict):
-    experiment_id = "0"
+
+    # Dynamically fetch the experiment ID
+    experiment_name = f"experiment_{config_dict['run_id_number']}"
+    print('experiment_name', experiment_name)
+
+    experiment = mlflow.get_experiment_by_name(experiment_name)
+
+    if experiment is None:
+        raise ValueError(f"Experiment with name '{experiment_name}' does not exist.")
+
+    experiment_id = experiment.experiment_id  # Dynamically obtained experiment_id
+
     runs_df = mlflow.search_runs([experiment_id]).sort_values('end_time', ascending=False)
     runs_df = runs_df[runs_df.status == 'FINISHED']  # exclude all failed jobs
 
     try:
-        metric_name = f"metrics.{config_dict['evaluation_metric']}"
+        metric_name = f"metrics.cv_{config_dict['evaluation_metric']}"
+        metric_name_std = f"metrics.cv_{config_dict['evaluation_metric']}_std"
         expected_columns = {
-            'metrics.std',
+            metric_name_std,
             metric_name,
             'tags.mlflow.runName',
             'status',
             'end_time'
         }
+
         assert expected_columns.issubset(runs_df.columns), \
             f"Some expected columns are missing from mlflow: {sorted(expected_columns - set(runs_df.columns))}"
 
@@ -452,8 +468,8 @@ def get_latest_score(config_dict: dict):
 
         first_row = runs_df[runs_df['tags.mlflow.runName'].isin(lst)].sort_values('end_time', ascending=False)[:1]
 
-        score_mean = first_row[f"metrics.{config_dict['evaluation_metric']}"].reset_index(drop=True)
-        score_std = first_row[f"metrics.std"].reset_index(drop=True)
+        score_mean = first_row[metric_name].reset_index(drop=True)
+        score_std = first_row[metric_name_std].reset_index(drop=True)
 
         assert len(score_mean) > 0, f"Did not find any scores for run_id_number: {config_dict['run_id_number']}"
 
@@ -550,7 +566,8 @@ def update_upload_config(scores: dict, config_dict: dict, run_name='run_name', r
             mf.upload_artifacts(model_name=f'{best_method}_tuned_params', model=model)
 
         elif model is not None:
-            if not isinstance(model, Sequential):
+            if not isinstance(model, str):  # TEST, TEMPORARY SOLUTION
+                # if not isinstance(model, Sequential):
                 update_config(model_name=best_method, best_model_params=model.get_params(), config_dict=config_dict)
             else:
                 update_config(model_name=best_method, config_dict=config_dict)
@@ -571,28 +588,83 @@ def update_upload_config(scores: dict, config_dict: dict, run_name='run_name', r
         print('We keep previous results since the new results are not significant')
 
 
-def get_baseline_score(df: pd.DataFrame, target_label: str, classification: bool, evaluation_metric: str,
-                       run_id_number: int, model_name, k_fold_method='k_fold', n_folds=3, n_repeats=10):
-    """Get a baseline score """
+def get_baseline_score(df: pd.DataFrame,
+                       target_label: str,
+                       scores_selected: set,
+                       classification: bool,
+                       evaluation_metrics: list,
+                       run_id_number: int,
+                       model_name,
+                       k_fold_method='k_fold',
+                       n_folds=3,
+                       n_repeats=10):
+    """Get a baseline scores """
 
     print('Computing baseline score')
-    return baseline_score_cv(df, target_label, configs.models['clf' if classification else 'reg'][model_name],
-                             evaluation_metric=em.EvalMetrics.from_str(evaluation_metric), run_id_number=run_id_number,
-                             policy=cv.SplitPolicy(random_state=constants.DEFAULT_SEED, n_splits=n_folds,
-                                                   policy_type=k_fold_method,
-                                                   shuffle=True, n_repeats=n_repeats))
+
+    model = configs.models['clf' if classification else 'reg'][model_name]
+
+    scores = dict()
+
+    if 'cv' in scores_selected:
+        cv_scores = baseline_score_cv(df,
+                                      target_label,
+                                      model,
+                                      evaluation_metrics=evaluation_metrics,
+                                      policy=cv.SplitPolicy(random_state=constants.DEFAULT_SEED,
+                                                            n_splits=n_folds,
+                                                            policy_type=k_fold_method,
+                                                            shuffle=True, n_repeats=n_repeats))
+        scores['cv'] = cv_scores
+
+    if 'hold_out' in scores_selected:
+        hold_out_scores = baseline_score_hold_out(df=df,
+                                                  target_label=target_label,
+                                                  model=model,
+                                                  evaluation_metrics=evaluation_metrics,
+                                                  classification=classification
+                                                  )
+        scores['hold_out'] = hold_out_scores
+    print('scores', scores)
+    mf.upload_baseline_score(df=df,
+                             run_id_number=run_id_number,
+                             scores=scores,
+                             model=model
+                             )
+
+    return scores
 
 
-def baseline_score_cv(df, target_label, model, evaluation_metric: em.EvalMetrics, run_id_number,
+def baseline_score_hold_out(df,
+                            target_label,
+                            model,
+                            evaluation_metrics,
+                            classification,
+                            ):
+    scores = scorers.get_hold_out_score(df=df,
+                                        target_label=target_label,
+                                        x=None,
+                                        y=None,
+                                        return_all=False,
+                                        classification=classification,
+                                        model=model,
+                                        test_size=0.2,
+                                        evaluation_metrics=evaluation_metrics)
+
+    return scores
+
+
+def baseline_score_cv(df, target_label, model, evaluation_metrics,
                       policy=cv.SplitPolicy.kfold_default()):
     """ Get a baseline cross validation score for the dataset and model supplied. """
 
     ds = d.Dataset.from_dataframe(df, [target_label])
     scores = scorers.get_cross_validation_score(ds, model=model, split_policy=policy,
-                                                evaluation_metrics=[evaluation_metric],
+                                                evaluation_metrics=evaluation_metrics,
                                                 n_jobs=-1, verbose=3)
-    mf.upload_baseline_score(df, run_id_number, evaluation_metric.value, scores, model)
-    print(f'Score: {scores[0]} Std:{scores[1]}')
+
+    print(f'Scores{scores}')
+
     return scores
 
 

@@ -6,7 +6,7 @@ from sklearn.model_selection import RepeatedKFold
 import tensorflow as tf
 
 import taberspilotml.base_helpers as h
-from taberspilotml.configs import scoring_metrics
+from taberspilotml.conf.configs import scoring_metrics
 
 
 def y_train_handler(y_train, activation_f_type):

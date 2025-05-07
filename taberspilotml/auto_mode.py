@@ -1,14 +1,16 @@
 """******** AUTOPILOT MODE FUNCTIONS ******** """
 from typing import Callable
+from collections import OrderedDict
 
 import taberspilotml.pre_modelling.imbalance
 import taberspilotml.pre_modelling.outliers as outliers
 import taberspilotml.pre_modelling.encoders as enc
 import taberspilotml.hyper_opti as hyper_p
 import taberspilotml.modelling.ml_models as ml_models
-import taberspilotml.modelling.neural_nets as neural_nets
+# import taberspilotml.modelling.neural_nets as neural_nets
 import taberspilotml.pre_modelling.feature_importance as fi
-import taberspilotml.preprocessing as dv
+# import taberspilotml.preprocessing as dv
+import taberspilotml.preprocessing.generals as dv
 from taberspilotml import base_helpers
 import taberspilotml.base_helpers as bh
 
@@ -100,7 +102,6 @@ def mixed_handler(step_name: str, function: Callable, parameters: dict, config_d
     :param config_dict:
         The configuration.
     """
-
     scores, result_df = function(**parameters)
     # this functions take a result df as input
     base_helpers.update_upload_config(scores=scores, config_dict=config_dict, result_df=result_df,
@@ -128,12 +129,64 @@ post_modelling_steps = {'feature_selection': (fi.get_reduced_features_cv_scores,
                         'optuna': (hyper_p.optuna_hyperopt, hyper_p_handler),
                         'grid_search': (hyper_p.grid_search_hyperopt, hyper_p_handler)}
 
-mlp = {'evaluate_mlp_model': (neural_nets.cv_eval_mlp, scoring_handler)}
 
-all_pipeline_steps = {**modelling_steps, **post_modelling_steps, **mlp}
+def inject_task_into_steps(task_specs=None):
+    """
+    Inserts a new task into the `default_steps` dictionary at a specified position.
+
+    Parameters:
+    -----------
+    task_specs : list of dict
+        A list of task specifications, each containing:
+        - 'step_name' (str): Must be 'default_steps'.
+        - 'task_name' (str): Task name to insert.
+        - 'position' (int): Index to insert at.
+        - 'function' (callable): Task function.
+
+    Raises:
+    -------
+    ValueError: If `task_specs` is not a list.
+    NotImplementedError: If 'step_name' is unsupported.
+
+    Notes:
+    ------
+    - Uses `initial_checkpoint_handler` as the default handler.
+    - Position is adjusted if out of bounds.
+    """
+
+    global default_steps
+
+    # Validate input
+    if not isinstance(task_specs, list):
+        raise ValueError("Expected a list of task specifications.")
+
+    for spec_container in task_specs:
+
+        if spec_container['step_name'] != 'default_steps':
+            raise NotImplementedError('Unsupported step_name')
+
+        elif spec_container['step_name'] == 'default_steps':
+            # Note: Observe that we use initial_checkpoint_handler as default handler for now
+            new_task = {spec_container['task_name']: (spec_container['function'], initial_checkpoint_handler)}
+
+            # Convert to a list of tuples to insert at a specific index
+            items = list(default_steps.items())
+
+            # Insert at the desired position
+            position = spec_container['position']
+            items.insert(position, list(new_task.items())[0])
+
+            # Convert back to OrderedDict to maintain order
+            default_steps = OrderedDict(items)
 
 
-def autopilot_mode(steps: list, config_dict: dict):
+# mlp = {'evaluate_mlp_model': (neural_nets.cv_eval_mlp, scoring_handler)}
+
+# all_pipeline_steps_ex_default_steps = {**modelling_steps, **post_modelling_steps, **mlp} # temporarily commented out
+all_pipeline_steps_ex_default_steps = {**modelling_steps, **post_modelling_steps}
+
+
+def autopilot_mode(steps: list, config_dict: dict, task_specs=None):
     """
     Info: Runs the steps selected sequentially
 
@@ -148,9 +201,11 @@ def autopilot_mode(steps: list, config_dict: dict):
 
     Returns:
     """
+    if task_specs is not None:
+        inject_task_into_steps(task_specs=task_specs)
 
     # Select only pipeline steps from the supplied steps
-    pipeline_steps = {k: v for k, v in all_pipeline_steps.items() if k in steps}
+    pipeline_steps = {k: v for k, v in all_pipeline_steps_ex_default_steps.items() if k in steps}
 
     # Ensure all default steps are prepended to the selected pipeline steps.
     final_steps = {**default_steps, **pipeline_steps}
@@ -165,6 +220,7 @@ def execute_steps(steps, config_dict):
     summary_report = []
     for i, (step_name, (func, handler)) in enumerate(steps.items()):
         current_params = bh.get_params_from_config(func=func, config_dict=config_dict)
+
         bh.printy(text='JOB', text_type='custom', p1=i, p2=step_name)
 
         try:
