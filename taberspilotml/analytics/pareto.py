@@ -38,6 +38,62 @@ def get_pareto_df(df: pd.DataFrame, agg_col: str, cols: list, agg_type: str, uni
     return output_df
 
 
+def pareto_from_experiments(results, metric=None):
+    """Compute Pareto frontier on (metric, time) axes from experiment results.
+
+    Points on the frontier represent the best trade-offs between score and execution time.
+
+    :param results: List of ExperimentResult instances.
+    :param metric: Metric name. Defaults to primary metric.
+    :returns: DataFrame of Pareto-optimal experiments, sorted by score.
+    """
+    completed = [r for r in results if r.status == 'completed']
+    if not completed:
+        return pd.DataFrame()
+
+    if metric is None:
+        metric = completed[0].config.evaluation_metric
+
+    classification = completed[0].config.classification
+
+    rows = []
+    for r in completed:
+        score = r.scores.get(metric, float('nan'))
+        rows.append({
+            'name': r.config.name,
+            'model': r.config.model.model_name,
+            metric: score,
+            'execution_time': r.execution_time,
+            'fingerprint': r.config.fingerprint,
+        })
+
+    df_all = pd.DataFrame(rows)
+
+    # Find Pareto frontier: maximize score, minimize time
+    pareto_mask = []
+    for i, row in df_all.iterrows():
+        dominated = False
+        for j, other in df_all.iterrows():
+            if i == j:
+                continue
+            if classification:
+                better_score = other[metric] >= row[metric]
+                better_time = other['execution_time'] <= row['execution_time']
+                strictly_better = (other[metric] > row[metric]) or (other['execution_time'] < row['execution_time'])
+            else:
+                better_score = other[metric] <= row[metric]
+                better_time = other['execution_time'] <= row['execution_time']
+                strictly_better = (other[metric] < row[metric]) or (other['execution_time'] < row['execution_time'])
+
+            if better_score and better_time and strictly_better:
+                dominated = True
+                break
+        pareto_mask.append(not dominated)
+
+    pareto_df = df_all[pareto_mask].sort_values(metric, ascending=not classification).reset_index(drop=True)
+    return pareto_df
+
+
 def generate_pareto_graph(df, col_name, agg_type: str, x_limit=10):
     """
     OBS: This function takes as an input function get_pareto_df

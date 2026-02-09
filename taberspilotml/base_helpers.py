@@ -524,6 +524,37 @@ def get_params_to_upload(config_dict: dict, params_keys: dict):
     return results
 
 
+def update_scores_only(scores: dict, config_dict: dict, result_df=None, tuned_params=None, model=None):
+    """Update config_dict with new scores WITHOUT uploading to MLflow.
+
+    This decoupled version allows the experiment runner to collect scores
+    without requiring an MLflow server.
+
+    :param scores: The scores dictionary.
+    :param config_dict: Config to update.
+    :param result_df: Optional result dataframe.
+    :param tuned_params: Optional tuned parameters.
+    :param model: Optional model.
+    :returns: result_df if provided, otherwise None.
+    """
+    new_score, new_std, best_method = get_best_score(scores, classification=config_dict['classification'])
+    update_config(std=new_std, config_dict=config_dict)
+    update_config(key=config_dict['evaluation_metric'], value=new_score, config_dict=config_dict)
+
+    if result_df is not None:
+        update_config(df=result_df, num_rows=result_df.shape[0], config_dict=config_dict)
+
+    elif model is not None:
+        if not isinstance(model, str):
+            update_config(model_name=best_method, best_model_params=model.get_params(), config_dict=config_dict)
+        else:
+            update_config(model_name=best_method, config_dict=config_dict)
+    else:
+        update_config(model_name=best_method, config_dict=config_dict)
+
+    return result_df
+
+
 def update_upload_config(scores: dict, config_dict: dict, run_name='run_name', result_df=None, tuned_params=None,
                          model=None):
     """ Where a new score is judged sufficiently improved compared to old, this function updates the config_dict

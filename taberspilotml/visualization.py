@@ -71,6 +71,92 @@ def get_graph(input_data, figsize=(5, 6), stage='default_stage in pipeline', col
         plt.show()
 
 
+def plot_pipeline_comparison(results, metric=None, figsize=(10, 6), save_figure=False, file_name='pipeline_comparison'):
+    """Plot a bar chart comparing pipeline variants by their primary metric.
+
+    :param results: List of ExperimentResult instances.
+    :param metric: Metric to plot. Defaults to primary metric.
+    :param figsize: Figure size.
+    :param save_figure: Whether to save the figure to disk.
+    :param file_name: Name of the file to save.
+    """
+    completed = [r for r in results if r.status == 'completed']
+    if not completed:
+        print('No completed results to plot.')
+        return
+
+    if metric is None:
+        metric = completed[0].config.evaluation_metric
+
+    names = [r.config.name for r in completed]
+    scores = [r.scores.get(metric, 0) for r in completed]
+    stds = [r.score_stds.get(metric, 0) for r in completed]
+
+    # Sort by score
+    sorted_data = sorted(zip(names, scores, stds), key=lambda x: x[1], reverse=True)
+    names, scores, stds = zip(*sorted_data)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    y_pos = range(len(names))
+    ax.barh(y_pos, scores, xerr=stds, align='center', color=DEFAULT_COLOR, alpha=0.7)
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(names)
+    ax.invert_yaxis()
+    ax.set_xlabel(metric)
+    ax.set_title(f'Pipeline Comparison: {metric}')
+    plt.tight_layout()
+
+    if save_figure:
+        h.save_figure_to_disk(main_folder='pipeline_comparison', figure_name=file_name, save_as_plt=False, fig=fig)
+    plt.show()
+
+
+def plot_search_progress(results, metric=None, figsize=(10, 6), save_figure=False, file_name='search_progress'):
+    """Plot the search progress: score over trial number.
+
+    :param results: List of ExperimentResult instances (in evaluation order).
+    :param metric: Metric to plot. Defaults to primary metric.
+    :param figsize: Figure size.
+    :param save_figure: Whether to save the figure to disk.
+    :param file_name: Name of the file to save.
+    """
+    completed = [r for r in results if r.status == 'completed']
+    if not completed:
+        print('No completed results to plot.')
+        return
+
+    if metric is None:
+        metric = completed[0].config.evaluation_metric
+
+    classification = completed[0].config.classification
+
+    trial_numbers = list(range(1, len(completed) + 1))
+    scores = [r.scores.get(metric, 0) for r in completed]
+
+    # Compute running best
+    running_best = []
+    best_so_far = float('-inf') if classification else float('inf')
+    for s in scores:
+        if classification:
+            best_so_far = max(best_so_far, s)
+        else:
+            best_so_far = min(best_so_far, s)
+        running_best.append(best_so_far)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.scatter(trial_numbers, scores, color=DEFAULT_COLOR, alpha=0.5, label='Trial score')
+    ax.plot(trial_numbers, running_best, color='navy', linewidth=2, label='Best so far')
+    ax.set_xlabel('Trial Number')
+    ax.set_ylabel(metric)
+    ax.set_title(f'Search Progress: {metric}')
+    ax.legend()
+    plt.tight_layout()
+
+    if save_figure:
+        h.save_figure_to_disk(main_folder='search_progress', figure_name=file_name, save_as_plt=False, fig=fig)
+    plt.show()
+
+
 def get_initial_eda_graphs(df, target=None, save_figures=False, palette=DEFAULT_PALETTE):
     # PART 1
     print('Count plots')

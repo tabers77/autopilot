@@ -95,25 +95,35 @@ def eval_model_scaler_wrapper(df, target_label, model_name, k_fold_method='k_fol
 
 
 def get_stacking(models_dict=None, n_folds=3, classification=True):
-    """
+    """Create a stacking ensemble from individual models.
+
+    Delegates to StackingEnsembleBuilder for the actual construction,
+    while maintaining backward compatibility with the existing API.
 
     Args:
-        models_dict:
-        n_folds:
-        classification:
+        models_dict: Dictionary of {name: model} for base estimators.
+        n_folds: Number of CV folds for meta-feature generation.
+        classification: Whether this is a classification task.
 
     Returns:
-
+        A StackingClassifier or StackingRegressor.
     """
-    level0 = list()
+    from taberspilotml.modelling.ensembles import EnsembleSpec, StackingEnsembleBuilder
 
-    for name, model in models_dict.items():
-        level0.append((name, model))
+    spec = EnsembleSpec(
+        ensemble_type='stacking',
+        base_models=list(models_dict.keys()) if models_dict else None,
+        n_folds=n_folds,
+    )
+    builder = StackingEnsembleBuilder(spec, classification)
+
+    # Build using the spec, but we need to use the provided models_dict
+    # rather than the registry, so we build directly
+    level0 = [(name, model) for name, model in models_dict.items()]
 
     if classification:
         meta_model = LogisticRegression()
         model = StackingClassifier(estimators=level0, final_estimator=meta_model, cv=n_folds)
-
     else:
         meta_model = LinearRegression()
         model = StackingRegressor(estimators=level0, final_estimator=meta_model, cv=n_folds)

@@ -103,3 +103,36 @@ transformers = {'KBins': KBinsDiscretizer(n_bins=10, encode='ordinal', strategy=
 
 scalers = {'MinMax': MinMaxScaler(),
            'Standard': StandardScaler()}
+
+# Relative cost estimates per model (1=cheapest, 10=most expensive)
+# Used for FLAML-inspired cost-aware ordering: cheap models first
+MODEL_COST_ESTIMATES = {
+    'NB': 1,
+    'LR': 1,
+    'KNN': 2,
+    'CART': 2,
+    'ADA': 4,
+    'SVC': 5,
+    'SVR': 5,
+    'RF': 6,
+    'MLP': 7,
+    'XGB': 8,
+}
+
+# Default ensemble configurations
+ENSEMBLE_DEFAULTS = {
+    'stacking': {
+        'base_models': ['RF', 'XGB', 'KNN'],
+        'meta_model': None,  # Uses LogisticRegression/RidgeCV
+        'n_folds': 5,
+        'n_layers': 1,
+    },
+    'weighted': {
+        'base_models': ['RF', 'XGB', 'KNN'],
+        'weights': None,  # Equal weights
+    },
+    'bagging': {
+        'base_models': ['CART'],
+        'n_estimators': 10,
+    },
+}

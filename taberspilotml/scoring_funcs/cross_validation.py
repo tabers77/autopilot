@@ -71,6 +71,20 @@ class SplitPolicy:
 
         return cls(n_repeats=3, policy_type='repeated_stratified_k_fold')
 
+    @classmethod
+    def from_cv_spec(cls, cv_spec) -> 'SplitPolicy':
+        """Create a SplitPolicy from a CVSpec dataclass.
+
+        :param cv_spec: A CVSpec instance from experiment.config.
+        """
+        return cls(
+            random_state=cv_spec.random_state,
+            n_splits=cv_spec.n_splits,
+            policy_type=cv_spec.policy_type,
+            shuffle=cv_spec.shuffle,
+            n_repeats=cv_spec.n_repeats,
+        )
+
 
 class CrossValidationResult:
     """ Encapsulates a CV result. """

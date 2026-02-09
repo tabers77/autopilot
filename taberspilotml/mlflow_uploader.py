@@ -2,7 +2,6 @@
 from typing import Any, Callable, Union, Dict, Tuple
 import mlflow
 import pandas as pd
-from taberspilotml.scoring_funcs.scorers import EvaluationResults
 from sklearn.base import BaseEstimator
 
 
@@ -252,3 +251,24 @@ class MLFlow:
 
         print('Find your results here: http://localhost:5000/')
         mlflow.end_run()
+
+
+def upload_experiment_config_tags(experiment_config):
+    """Upload ExperimentConfig as structured MLflow tags.
+
+    This enables querying experiments by pipeline structure in the MLflow UI.
+
+    :param experiment_config: An ExperimentConfig instance.
+    """
+    tags = {
+        'experiment.model_name': experiment_config.model.model_name,
+        'experiment.scaler': experiment_config.features.scaler_name or 'None',
+        'experiment.transformer': experiment_config.features.transformer_name or 'None',
+        'experiment.imputation': experiment_config.preprocessing.imputation_strategy,
+        'experiment.cv_policy': experiment_config.cv.policy_type,
+        'experiment.n_splits': str(experiment_config.cv.n_splits),
+        'experiment.stacking': str(experiment_config.model.stacking),
+        'experiment.task_type': experiment_config.task_type.value,
+        'experiment.fingerprint': experiment_config.fingerprint,
+    }
+    mlflow.set_tags(tags)

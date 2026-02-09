@@ -132,21 +132,23 @@ post_modelling_steps = {'feature_selection': (fi.get_reduced_features_cv_scores,
 
 def inject_task_into_steps(task_specs=None):
     """
-    Inserts a new task into the `default_steps` dictionary at a specified position.
+    Inserts a new task into a step registry dictionary at a specified position.
 
     Parameters:
     -----------
     task_specs : list of dict
         A list of task specifications, each containing:
-        - 'step_name' (str): Must be 'default_steps'.
+        - 'step_name' (str): Target registry: 'default_steps', 'modelling_steps',
+          'post_modelling_steps', or 'time_series_steps'.
         - 'task_name' (str): Task name to insert.
         - 'position' (int): Index to insert at.
         - 'function' (callable): Task function.
+        - 'handler' (callable, optional): Handler function. Defaults to initial_checkpoint_handler.
 
     Raises:
     -------
     ValueError: If `task_specs` is not a list.
-    NotImplementedError: If 'step_name' is unsupported.
+    ValueError: If 'step_name' is not a recognized step registry.
 
     Notes:
     ------
@@ -154,35 +156,67 @@ def inject_task_into_steps(task_specs=None):
     - Position is adjusted if out of bounds.
     """
 
-    global default_steps
+    global default_steps, modelling_steps, post_modelling_steps, time_series_steps
+
+    step_registries = {
+        'default_steps': 'default_steps',
+        'modelling_steps': 'modelling_steps',
+        'post_modelling_steps': 'post_modelling_steps',
+        'time_series_steps': 'time_series_steps',
+    }
 
     # Validate input
     if not isinstance(task_specs, list):
         raise ValueError("Expected a list of task specifications.")
 
     for spec_container in task_specs:
+        step_name = spec_container['step_name']
 
-        if spec_container['step_name'] != 'default_steps':
-            raise NotImplementedError('Unsupported step_name')
+        if step_name not in step_registries:
+            raise ValueError(f'Unsupported step_name: {step_name}. '
+                             f'Supported: {list(step_registries.keys())}')
 
-        elif spec_container['step_name'] == 'default_steps':
-            # Note: Observe that we use initial_checkpoint_handler as default handler for now
-            new_task = {spec_container['task_name']: (spec_container['function'], initial_checkpoint_handler)}
+        # Get the handler (default to initial_checkpoint_handler)
+        handler = spec_container.get('handler', initial_checkpoint_handler)
 
-            # Convert to a list of tuples to insert at a specific index
-            items = list(default_steps.items())
+        new_task = {spec_container['task_name']: (spec_container['function'], handler)}
 
-            # Insert at the desired position
-            position = spec_container['position']
-            items.insert(position, list(new_task.items())[0])
+        # Get the target registry
+        if step_name == 'default_steps':
+            target = default_steps
+        elif step_name == 'modelling_steps':
+            target = modelling_steps
+        elif step_name == 'post_modelling_steps':
+            target = post_modelling_steps
+        elif step_name == 'time_series_steps':
+            target = time_series_steps
 
-            # Convert back to OrderedDict to maintain order
-            default_steps = OrderedDict(items)
+        # Convert to a list of tuples to insert at a specific index
+        items = list(target.items())
+
+        # Insert at the desired position
+        position = spec_container['position']
+        items.insert(position, list(new_task.items())[0])
+
+        # Convert back to OrderedDict to maintain order
+        updated = OrderedDict(items)
+
+        if step_name == 'default_steps':
+            default_steps = updated
+        elif step_name == 'modelling_steps':
+            modelling_steps = updated
+        elif step_name == 'post_modelling_steps':
+            post_modelling_steps = updated
+        elif step_name == 'time_series_steps':
+            time_series_steps = updated
 
 
 # mlp = {'evaluate_mlp_model': (neural_nets.cv_eval_mlp, scoring_handler)}
 
 # all_pipeline_steps_ex_default_steps = {**modelling_steps, **post_modelling_steps, **mlp} # temporarily commented out
+# Time-series specific steps (empty by default, populated via inject_task_into_steps)
+time_series_steps = OrderedDict()
+
 all_pipeline_steps_ex_default_steps = {**modelling_steps, **post_modelling_steps}
 
 
@@ -231,3 +265,20 @@ def execute_steps(steps, config_dict):
             summary_report.append(('not processed', step_name, err))
             print(f'We could not return scores and result_df from previous step. We skip this step {err}')
     return summary_report
+
+
+def run_experiment(config, df):
+    """Run a single ExperimentConfig and return an ExperimentResult.
+
+    This is the new entry point for the experiment framework.
+    Converts ExperimentConfig -> PipelineSpec -> step dict -> execute_steps -> ExperimentResult.
+
+    For direct, lightweight execution (bypassing the full pipeline), use
+    taberspilotml.experiment.runner.run_single() instead.
+
+    :param config: An ExperimentConfig instance.
+    :param df: The dataframe to run the experiment on.
+    :returns: An ExperimentResult instance.
+    """
+    from taberspilotml.experiment.runner import run_single
+    return run_single(config, df)
